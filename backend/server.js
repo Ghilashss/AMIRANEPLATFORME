@@ -24,14 +24,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
 
 // CORS - Autoriser les requêtes depuis le frontend
+// 🔓 TEMPORAIRE: Autoriser TOUS les domaines pour débugger
 app.use(cors({
-  origin: [
-    'http://localhost:9000', 
-    'http://localhost:3000', 
-    'http://127.0.0.1:9000',
-    'https://amirane.store',      // ✅ Production Hostinger
-    'http://amirane.store'         // ✅ HTTP redirect
-  ],
+  origin: true,  // Accepte tous les domaines (équivalent à '*' mais avec credentials)
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
