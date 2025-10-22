@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Vérification de l'installation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #1976D2;
+            border-bottom: 2px solid #e3f2fd;
+            padding-bottom: 10px;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        button {
+            background: #1976D2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1565C0;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+    </style>
+    <!-- Configuration API (OBLIGATOIRE EN PREMIER) -->
+    <script src="/dashboards/config.js"></script>
+</head>
+<body>
+    <h1>🧪 Test de l'installation - Section Colis</h1>
+
+    <div class="test-card">
+        <h2>📋 Vérification des fichiers</h2>
+        <div id="filesCheck"></div>
+    </div>
+
+    <div class="test-card">
+        <h2>💾 Vérification des données localStorage</h2>
+        <button onclick="checkLocalStorage()">Vérifier localStorage</button>
+        <button onclick="addTestData()">Ajouter données de test</button>
+        <button onclick="clearAllData()">Effacer toutes les données</button>
+        <div id="localStorageCheck"></div>
+    </div>
+
+    <div class="test-card">
+        <h2>🧪 Données de test</h2>
+        <div class="info">
+            <strong>Note:</strong> Ces données de test simulent ce que l'admin ajouterait.
+        </div>
+        <button onclick="addTestWilayas()">Ajouter wilayas de test</button>
+        <button onclick="addTestAgences()">Ajouter agences de test</button>
+        <button onclick="addTestColis()">Ajouter colis de test</button>
+        <div id="testDataInfo"></div>
+    </div>
+
+    <div class="test-card">
+        <h2>🔗 Liens rapides</h2>
+        <button onclick="window.location.href='../../dashboards/admin/admin-dashboard.html'">
+            Ouvrir Dashboard Admin
+        </button>
+        <button onclick="window.location.href='agence-dashboard.html'">
+            Ouvrir Dashboard Agence
+        </button>
+    </div>
+
+    <script>
+        function checkLocalStorage() {
+            const output = document.getElementById('localStorageCheck');
+            const wilayas = localStorage.getItem('wilayas');
+            const agences = localStorage.getItem('agences');
+            const colis = localStorage.getItem('colis');
+            
+            let html = '<h3>État du localStorage:</h3>';
+            
+            // Wilayas
+            html += '<p><strong>Wilayas:</strong> ';
+            if (wilayas) {
+                const wilayasData = JSON.parse(wilayas);
+                html += `<span class="status success">${wilayasData.length} wilayas</span></p>`;
+                html += `<pre>${JSON.stringify(wilayasData, null, 2)}</pre>`;
+            } else {
+                html += '<span class="status error">Aucune wilaya</span></p>';
+            }
+            
+            // Agences
+            html += '<p><strong>Agences:</strong> ';
+            if (agences) {
+                const agencesData = JSON.parse(agences);
+                html += `<span class="status success">${agencesData.length} agences</span></p>`;
+                html += `<pre>${JSON.stringify(agencesData, null, 2)}</pre>`;
+            } else {
+                html += '<span class="status error">Aucune agence</span></p>';
+            }
+            
+            // Colis
+            html += '<p><strong>Colis:</strong> ';
+            if (colis) {
+                const colisData = JSON.parse(colis);
+                html += `<span class="status success">${colisData.length} colis</span></p>`;
+                html += `<pre>${JSON.stringify(colisData, null, 2)}</pre>`;
+            } else {
+                html += '<span class="status error">Aucun colis</span></p>';
+            }
+            
+            output.innerHTML = html;
+        }
+
+        function addTestWilayas() {
+            const testWilayas = [
+                {
+                    id: Date.now().toString(),
+                    code: "16",
+                    nom: "Alger",
+                    designation: "Wilaya d'Alger",
+                    zone: "centre",
+                    email: "alger@contact.dz",
+                    status: "active"
+                },
+                {
+                    id: (Date.now() + 1).toString(),
+                    code: "31",
+                    nom: "Oran",
+                    designation: "Wilaya d'Oran",
+                    zone: "ouest",
+                    email: "oran@contact.dz",
+                    status: "active"
+                },
+                {
+                    id: (Date.now() + 2).toString(),
+                    code: "25",
+                    nom: "Constantine",
+                    designation: "Wilaya de Constantine",
+                    zone: "est",
+                    email: "constantine@contact.dz",
+                    status: "active"
+                }
+            ];
+            
+            localStorage.setItem('wilayas', JSON.stringify(testWilayas));
+            document.getElementById('testDataInfo').innerHTML = 
+                '<p class="status success">✅ 3 wilayas de test ajoutées!</p>';
+            checkLocalStorage();
+        }
+
+        function addTestAgences() {
+            const testAgences = [
+                {
+                    id: Date.now().toString(),
+                    code: "AG2410-16-001",
+                    nom: "Agence Alger Centre",
+                    wilaya: "16",
+                    wilayaText: "Alger",
+                    email: "alger.centre@agence.dz",
+                    telephone: "0555123456",
+                    status: "active",
+                    dateCreation: new Date().toISOString()
+                },
+                {
+                    id: (Date.now() + 1).toString(),
+                    code: "AG2410-31-001",
+                    nom: "Agence Oran Centre",
+                    wilaya: "31",
+                    wilayaText: "Oran",
+                    email: "oran.centre@agence.dz",
+                    telephone: "0555123457",
+                    status: "active",
+                    dateCreation: new Date().toISOString()
+                },
+                {
+                    id: (Date.now() + 2).toString(),
+                    code: "AG2410-16-002",
+                    nom: "Agence Alger Est",
+                    wilaya: "16",
+                    wilayaText: "Alger",
+                    email: "alger.est@agence.dz",
+                    telephone: "0555123458",
+                    status: "active",
+                    dateCreation: new Date().toISOString()
+                }
+            ];
+            
+            localStorage.setItem('agences', JSON.stringify(testAgences));
+            document.getElementById('testDataInfo').innerHTML = 
+                '<p class="status success">✅ 3 agences de test ajoutées!</p>';
+            checkLocalStorage();
+        }
+
+        function addTestColis() {
+            const testColis = [
+                {
+                    id: Date.now().toString(),
+                    reference: "COL" + Date.now().toString().substr(-8),
+                    bureauSource: "AG2410-16-001",
+                    typeLivraison: "domicile",
+                    poids: "1.5",
+                    prixColis: "5000",
+                    description: "Colis test - Électronique",
+                    clientNom: "Ahmed Mohamed",
+                    clientTel: "0555987654",
+                    telSecondaire: "0666987654",
+                    wilaya: "31",
+                    bureauDest: "AG2410-31-001",
+                    fraisLivraison: 500,
+                    statut: "en_attente",
+                    date: new Date().toISOString()
+                },
+                {
+                    id: (Date.now() + 1).toString(),
+                    reference: "COL" + (Date.now() + 1).toString().substr(-8),
+                    bureauSource: "AG2410-16-001",
+                    typeLivraison: "bureau",
+                    poids: "0.5",
+                    prixColis: "2000",
+                    description: "Colis test - Documents",
+                    clientNom: "Fatima Benali",
+                    clientTel: "0666123789",
+                    telSecondaire: "",
+                    wilaya: "16",
+                    bureauDest: "AG2410-16-002",
+                    fraisLivraison: 300,
+                    statut: "en_transit",
+                    date: new Date().toISOString()
+                }
+            ];
+            
+            localStorage.setItem('colis', JSON.stringify(testColis));
+            document.getElementById('testDataInfo').innerHTML = 
+                '<p class="status success">✅ 2 colis de test ajoutés!</p>';
+            checkLocalStorage();
+        }
+
+        function addTestData() {
+            addTestWilayas();
+            setTimeout(() => {
+                addTestAgences();
+                setTimeout(() => {
+                    addTestColis();
+                    document.getElementById('testDataInfo').innerHTML = 
+                        '<p class="status success">✅ Toutes les données de test ajoutées! Vous pouvez maintenant tester le dashboard agence.</p>';
+                }, 100);
+            }, 100);
+        }
+
+        function clearAllData() {
+            if (confirm('⚠️ Êtes-vous sûr de vouloir effacer toutes les données ?')) {
+                localStorage.removeItem('wilayas');
+                localStorage.removeItem('agences');
+                localStorage.removeItem('colis');
+                document.getElementById('testDataInfo').innerHTML = 
+                    '<p class="status error">🗑️ Toutes les données ont été effacées.</p>';
+                checkLocalStorage();
+            }
+        }
+
+        // Vérification au chargement
+        window.onload = function() {
+            const files = [
+                'css/colis.css',
+                'css/colis-form.css',
+                'js/colis-form.js',
+                'js/colis-table.js',
+                'js/navigation.js'
+            ];
+            
+            const filesHTML = '<ul>' + files.map(f => 
+                `<li>✅ <code>${f}</code></li>`
+            ).join('') + '</ul>';
+            
+            document.getElementById('filesCheck').innerHTML = filesHTML;
+            checkLocalStorage();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Correction Wilayas → CODES</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            margin: 10px;
+            width: 100%;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .warning { color: #ffc107; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Correction Automatique des Wilayas</h1>
+        <p>Ce script va corriger TOUTES les agences pour utiliser les <strong>CODES de wilaya</strong> (01, 15, etc.) au lieu des noms.</p>
+        
+        <div style="margin: 20px 0;">
+            <label for="tokenInput" style="display: block; margin-bottom: 10px; font-weight: bold;">
+                🔑 Token d'authentification :
+            </label>
+            <input 
+                type="text" 
+                id="tokenInput" 
+                placeholder="Collez votre token ici (ou laissez vide pour utiliser sessionStorage)"
+                style="width: 100%; padding: 10px; border: 2px solid #667eea; border-radius: 5px; font-family: monospace; font-size: 12px;"
+            />
+            <small style="color: #666; display: block; margin-top: 5px;">
+                💡 Pour obtenir le token : Connectez-vous au dashboard Admin → Ouvrez la console (F12) → Tapez : <code style="background: #f0f0f0; padding: 2px 5px; border-radius: 3px;">sessionStorage.getItem('auth_token')</code>
+            </small>
+        </div>
+        
+        <button onclick="corrigerAgences()">🚀 Lancer la Correction</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function corrigerAgences() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '⏳ Correction en cours...\n\n';
+
+            try {
+                // Récupérer le token du champ ou de sessionStorage
+                let token = document.getElementById('tokenInput').value.trim();
+                
+                if (!token) {
+                    token = sessionStorage.getItem('auth_token');
+                }
+                
+                if (!token) {
+                    resultDiv.innerHTML = '❌ ERREUR: Aucun token trouvé !\n\n';
+                    resultDiv.innerHTML += '📝 Instructions :\n';
+                    resultDiv.innerHTML += '1. Connectez-vous au dashboard Admin\n';
+                    resultDiv.innerHTML += '2. Ouvrez la console (F12)\n';
+                    resultDiv.innerHTML += '3. Tapez: sessionStorage.getItem("auth_token")\n';
+                    resultDiv.innerHTML += '4. Copiez le token (sans les guillemets)\n';
+                    resultDiv.innerHTML += '5. Collez-le dans le champ ci-dessus\n';
+                    return;
+                }
+                
+                resultDiv.innerHTML += '✅ Token trouvé\n\n';
+
+                // 1. Charger les wilayas
+                resultDiv.innerHTML += '📋 Chargement des wilayas...\n';
+                const wilayasResp = await fetch('http://localhost:1000/api/wilayas', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const wilayasData = await wilayasResp.json();
+                const wilayas = wilayasData.data || [];
+
+                // Créer map nom → code
+                const nomToCode = new Map();
+                wilayas.forEach(w => {
+                    nomToCode.set(w.nom.toLowerCase(), w.code);
+                    nomToCode.set(w.code, w.code);
+                });
+
+                resultDiv.innerHTML += `✅ ${wilayas.length} wilayas chargées\n\n`;
+
+                // 2. Charger les agences
+                resultDiv.innerHTML += '🏢 Chargement des agences...\n';
+                const agencesResp = await fetch('http://localhost:1000/api/agences', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const agencesData = await agencesResp.json();
+                const agences = agencesData.data || [];
+
+                resultDiv.innerHTML += `✅ ${agences.length} agences chargées\n\n`;
+                resultDiv.innerHTML += '─'.repeat(80) + '\n';
+                resultDiv.innerHTML += 'VÉRIFICATION ET CORRECTION:\n';
+                resultDiv.innerHTML += '─'.repeat(80) + '\n\n';
+
+                let corrigees = 0;
+                let dejaCodes = 0;
+                let erreurs = 0;
+
+                for (const agence of agences) {
+                    const wilayaActuelle = agence.wilaya;
+                    const isCode = /^\d{1,2}$/.test(wilayaActuelle);
+
+                    if (isCode) {
+                        resultDiv.innerHTML += `✅ ${agence.nom}: wilaya="${wilayaActuelle}" (déjà un code)\n`;
+                        dejaCodes++;
+                    } else {
+                        const code = nomToCode.get(wilayaActuelle.toLowerCase());
+                        
+                        if (code) {
+                            // Corriger via API
+                            const updateResp = await fetch(`http://localhost:1000/api/agences/${agence._id}`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Authorization': `Bearer ${token}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    ...agence,
+                                    wilaya: code,
+                                    wilayaText: wilayaActuelle
+                                })
+                            });
+
+                            if (updateResp.ok) {
+                                resultDiv.innerHTML += `🔧 ${agence.nom}: "${wilayaActuelle}" → "${code}" (corrigé)\n`;
+                                corrigees++;
+                            } else {
+                                resultDiv.innerHTML += `❌ ${agence.nom}: Erreur de mise à jour\n`;
+                                erreurs++;
+                            }
+                        } else {
+                            resultDiv.innerHTML += `❌ ${agence.nom}: wilaya="${wilayaActuelle}" (code introuvable!)\n`;
+                            erreurs++;
+                        }
+                    }
+                }
+
+                resultDiv.innerHTML += '\n' + '─'.repeat(80) + '\n';
+                resultDiv.innerHTML += '📊 RÉSUMÉ:\n';
+                resultDiv.innerHTML += '─'.repeat(80) + '\n';
+                resultDiv.innerHTML += `✅ Agences déjà correctes: ${dejaCodes}\n`;
+                resultDiv.innerHTML += `🔧 Agences corrigées: ${corrigees}\n`;
+                resultDiv.innerHTML += `❌ Erreurs: ${erreurs}\n`;
+                resultDiv.innerHTML += `📦 Total: ${agences.length}\n\n`;
+
+                if (corrigees > 0) {
+                    resultDiv.innerHTML += '🎉 SUCCÈS! Rechargez la page Admin pour voir les changements.\n';
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML += `\n❌ ERREUR: ${error.message}\n`;
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test API Agence</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 1200px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f7fa;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #2c3e50;
+      border-bottom: 3px solid #3498db;
+      padding-bottom: 10px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #34495e;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    button {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+    .results {
+      margin-top: 30px;
+      background: #ecf0f1;
+      padding: 20px;
+      border-radius: 5px;
+      white-space: pre-wrap;
+      font-family: 'Courier New', monospace;
+    }
+    .success {
+      color: #27ae60;
+      font-weight: bold;
+    }
+    .error {
+      color: #e74c3c;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Test API - Récupération Agence</h1>
+    
+    <div class="form-group">
+      <label>1️⃣ D'abord, connectez-vous pour obtenir un token</label>
+      <input type="email" id="email" placeholder="Email de l'agent" value="">
+      <br><br>
+      <input type="password" id="password" placeholder="Mot de passe" value="">
+      <br><br>
+      <button onclick="login()">Se connecter</button>
+    </div>
+
+    <div class="form-group" style="margin-top: 30px;">
+      <label>2️⃣ Ensuite, testez /auth/me</label>
+      <button onclick="getMe()">Récupérer mon profil (/auth/me)</button>
+    </div>
+
+    <div class="form-group" style="margin-top: 30px;">
+      <label>3️⃣ Si vous avez un ID d'agence, testez directement</label>
+      <input type="text" id="agenceId" placeholder="ID de l'agence (ex: 67...)">
+      <br><br>
+      <button onclick="getAgence()">Récupérer l'agence</button>
+    </div>
+
+    <div class="results" id="results">
+      Les résultats s'afficheront ici...
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:1000/api';
+    let token = '';
+
+    function log(message, type = 'info') {
+      const results = document.getElementById('results');
+      const timestamp = new Date().toLocaleTimeString();
+      const className = type === 'success' ? 'success' : type === 'error' ? 'error' : '';
+      results.innerHTML += `[${timestamp}] ${message}\n`;
+      if (className) {
+        results.innerHTML = results.innerHTML.replace(message, `<span class="${className}">${message}</span>`);
+      }
+      results.scrollTop = results.scrollHeight;
+    }
+
+    async function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      if (!email || !password) {
+        log('❌ Veuillez remplir l\'email et le mot de passe', 'error');
+        return;
+      }
+
+      try {
+        log('🔐 Connexion en cours...');
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+        log(JSON.stringify(data, null, 2));
+
+        if (data.success && data.data.token) {
+          token = data.data.token;
+          log('✅ Connexion réussie ! Token stocké.', 'success');
+          log(`👤 Utilisateur: ${data.data.nom} (${data.data.role})`);
+          if (data.data.agence) {
+            log(`🏢 Agence ID: ${data.data.agence}`);
+            document.getElementById('agenceId').value = data.data.agence;
+          }
+        } else {
+          log('❌ Échec de connexion', 'error');
+        }
+      } catch (error) {
+        log('❌ Erreur: ' + error.message, 'error');
+      }
+    }
+
+    async function getMe() {
+      if (!token) {
+        log('❌ Veuillez d\'abord vous connecter', 'error');
+        return;
+      }
+
+      try {
+        log('📡 Appel de /auth/me...');
+        const response = await fetch(`${API_URL}/auth/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+        log(JSON.stringify(data, null, 2));
+
+        if (data.success && data.data) {
+          log('✅ Profil récupéré avec succès', 'success');
+          
+          if (data.data.agence) {
+            if (typeof data.data.agence === 'object') {
+              log(`🏢 Agence: ${data.data.agence.nom}`);
+              log(`📍 Wilaya Code: ${data.data.agence.wilaya}`);
+              log(`📍 Wilaya Text: ${data.data.agence.wilayaText || 'NON DÉFINI'}`);
+            } else {
+              log(`🏢 Agence ID: ${data.data.agence}`);
+              document.getElementById('agenceId').value = data.data.agence;
+            }
+          } else {
+            log('⚠️ Pas d\'agence associée');
+          }
+        } else {
+          log('❌ Échec de récupération du profil', 'error');
+        }
+      } catch (error) {
+        log('❌ Erreur: ' + error.message, 'error');
+      }
+    }
+
+    async function getAgence() {
+      const agenceId = document.getElementById('agenceId').value;
+
+      if (!agenceId) {
+        log('❌ Veuillez remplir l\'ID de l\'agence', 'error');
+        return;
+      }
+
+      if (!token) {
+        log('❌ Veuillez d\'abord vous connecter', 'error');
+        return;
+      }
+
+      try {
+        log(`📡 Appel de /agences/${agenceId}...`);
+        const response = await fetch(`${API_URL}/agences/${agenceId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+        log(JSON.stringify(data, null, 2));
+
+        if (data.success && data.data) {
+          log('✅ Agence récupérée avec succès', 'success');
+          log(`🏢 Nom: ${data.data.nom}`);
+          log(`📍 Wilaya Code: ${data.data.wilaya}`);
+          log(`📍 Wilaya Text: ${data.data.wilayaText || 'NON DÉFINI ⚠️'}`);
+        } else {
+          log('❌ Agence non trouvée', 'error');
+        }
+      } catch (error) {
+        log('❌ Erreur: ' + error.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Diagnostic Frais - Tizi Ouzou → Adrar</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .warning { color: #ffc107; font-weight: bold; }
+        .info { color: #17a2b8; }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Diagnostic Frais : Tizi Ouzou (15) → Adrar (01)</h1>
+        
+        <div class="section">
+            <h3>1️⃣ Vérifier Codes Wilayas</h3>
+            <button onclick="verifierCodes()">Vérifier</button>
+            <div id="result-codes" class="result"></div>
+        </div>
+
+        <div class="section">
+            <h3>2️⃣ Charger Tous les Frais de la BD</h3>
+            <button onclick="chargerTousFrais()">Charger</button>
+            <div id="result-tous" class="result"></div>
+        </div>
+
+        <div class="section">
+            <h3>3️⃣ Chercher Frais Tizi Ouzou → Adrar</h3>
+            <button onclick="chercherFraisSpecifique()">Chercher</button>
+            <div id="result-specifique" class="result"></div>
+        </div>
+
+        <div class="section">
+            <h3>4️⃣ Tester Enregistrement</h3>
+            <div class="form-group">
+                <label>Base Bureau</label>
+                <input type="number" id="baseBureau" value="500">
+            </div>
+            <div class="form-group">
+                <label>Par Kg Bureau</label>
+                <input type="number" id="parKgBureau" value="50">
+            </div>
+            <div class="form-group">
+                <label>Base Domicile</label>
+                <input type="number" id="baseDomicile" value="700">
+            </div>
+            <div class="form-group">
+                <label>Par Kg Domicile</label>
+                <input type="number" id="parKgDomicile" value="70">
+            </div>
+            <button onclick="testerEnregistrement()">Enregistrer Tizi → Adrar</button>
+            <div id="result-enregistrement" class="result"></div>
+        </div>
+
+        <div class="section">
+            <h3>5️⃣ Tester Calcul dans Formulaire</h3>
+            <button onclick="testerCalcul()">Tester Calcul (2 kg, Bureau)</button>
+            <div id="result-calcul" class="result"></div>
+        </div>
+
+        <div class="section">
+            <h3>6️⃣ Diagnostic Complet</h3>
+            <button onclick="diagnosticComplet()">Lancer Diagnostic</button>
+            <div id="result-diagnostic" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const TIZI_OUZOU = "15";
+        const ADRAR = "01";
+
+        function getToken() {
+            // Essayer sessionStorage en premier
+            let token = sessionStorage.getItem('auth_token');
+            
+            // Si pas trouvé, demander à l'utilisateur
+            if (!token) {
+                token = prompt('🔑 Collez votre token d\'authentification ici:\n\n(Copiez-le depuis: Admin Dashboard → Console (F12) → tapez: sessionStorage.getItem("auth_token"))');
+                if (!token) {
+                    alert('❌ Token requis pour continuer');
+                    throw new Error('Pas de token');
+                }
+                // Sauvegarder pour les prochains appels
+                sessionStorage.setItem('auth_token', token);
+            }
+            return token;
+        }
+
+        function verifierCodes() {
+            const resultDiv = document.getElementById('result-codes');
+            let html = '<div class="info">📋 Codes de wilayas :</div>';
+            html += '<pre>';
+            html += 'Tizi Ouzou : Code = "15"\n';
+            html += 'Adrar      : Code = "01"\n';
+            html += '</pre>';
+            html += '<div class="success">✅ Ces codes doivent être utilisés dans wilayaSource et wilayaDest</div>';
+            resultDiv.innerHTML = html;
+        }
+
+        async function chargerTousFrais() {
+            const resultDiv = document.getElementById('result-tous');
+            resultDiv.innerHTML = '<div class="info">⏳ Chargement...</div>';
+
+            try {
+                const token = getToken();
+                const response = await fetch('http://localhost:1000/api/frais-livraison', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                const frais = data.data || [];
+
+                let html = `<div class="success">✅ ${frais.length} configuration(s) trouvée(s)</div>`;
+                
+                if (frais.length === 0) {
+                    html += '<div class="warning">⚠️ Aucun frais configuré dans la base de données !</div>';
+                    html += '<div class="info">💡 Utilisez le test 4 pour en ajouter un.</div>';
+                } else {
+                    html += '<pre>' + JSON.stringify(frais, null, 2) + '</pre>';
+                }
+
+                resultDiv.innerHTML = html;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Erreur : ${error.message}</div>`;
+            }
+        }
+
+        async function chercherFraisSpecifique() {
+            const resultDiv = document.getElementById('result-specifique');
+            resultDiv.innerHTML = '<div class="info">⏳ Recherche...</div>';
+
+            try {
+                const token = getToken();
+                const response = await fetch('http://localhost:1000/api/frais-livraison', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                const frais = data.data || [];
+                
+                const fraisTiziAdrar = frais.find(f => 
+                    f.wilayaSource === TIZI_OUZOU && f.wilayaDest === ADRAR
+                );
+
+                let html = '';
+                if (fraisTiziAdrar) {
+                    html += '<div class="success">✅ Configuration trouvée !</div>';
+                    html += '<pre>' + JSON.stringify(fraisTiziAdrar, null, 2) + '</pre>';
+                } else {
+                    html += '<div class="warning">⚠️ Aucune configuration Tizi Ouzou (15) → Adrar (01)</div>';
+                    html += `<div class="info">📊 Configurations disponibles :</div>`;
+                    html += '<ul>';
+                    frais.forEach(f => {
+                        html += `<li>${f.wilayaSource} (${f.nomWilayaSource || '?'}) → ${f.wilayaDest} (${f.nomWilayaDest || '?'})</li>`;
+                    });
+                    html += '</ul>';
+                }
+
+                resultDiv.innerHTML = html;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Erreur : ${error.message}</div>`;
+            }
+        }
+
+        async function testerEnregistrement() {
+            const resultDiv = document.getElementById('result-enregistrement');
+            resultDiv.innerHTML = '<div class="info">⏳ Enregistrement...</div>';
+
+            try {
+                const token = getToken();
+                
+                const baseBureau = parseInt(document.getElementById('baseBureau').value) || 0;
+                const parKgBureau = parseInt(document.getElementById('parKgBureau').value) || 0;
+                const baseDomicile = parseInt(document.getElementById('baseDomicile').value) || 0;
+                const parKgDomicile = parseInt(document.getElementById('parKgDomicile').value) || 0;
+
+                const data = {
+                    wilayaSource: TIZI_OUZOU,
+                    wilayaDest: ADRAR,
+                    fraisStopDesk: baseBureau,
+                    fraisDomicile: baseDomicile,
+                    baseBureau: baseBureau,
+                    parKgBureau: parKgBureau,
+                    baseDomicile: baseDomicile,
+                    parKgDomicile: parKgDomicile
+                };
+
+                console.log('📤 Envoi des données:', data);
+
+                const response = await fetch('http://localhost:1000/api/frais-livraison', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || `HTTP ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                let html = '<div class="success">✅ Frais enregistrés avec succès !</div>';
+                html += '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+                html += '<div class="info">💡 Utilisez maintenant le test 5 pour vérifier le calcul</div>';
+
+                resultDiv.innerHTML = html;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Erreur : ${error.message}</div>`;
+                console.error('Erreur complète:', error);
+            }
+        }
+
+        async function testerCalcul() {
+            const resultDiv = document.getElementById('result-calcul');
+            resultDiv.innerHTML = '<div class="info">⏳ Simulation calcul...</div>';
+
+            try {
+                const token = getToken();
+                const response = await fetch('http://localhost:1000/api/frais-livraison', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                const frais = data.data || [];
+                
+                const config = frais.find(f => 
+                    f.wilayaSource === TIZI_OUZOU && f.wilayaDest === ADRAR
+                );
+
+                if (!config) {
+                    resultDiv.innerHTML = '<div class="warning">⚠️ Pas de configuration trouvée. Utilisez le test 4 d\'abord.</div>';
+                    return;
+                }
+
+                // Simuler le calcul du formulaire
+                const poids = 2; // kg
+                const typeLivraison = 'bureau';
+                
+                let prixBase = config.baseBureau || config.fraisStopDesk || 0;
+                let prixParKg = config.parKgBureau || 0;
+                
+                let fraisCalcules = prixBase + (poids * prixParKg);
+
+                let html = '<div class="success">✅ Simulation calcul :</div>';
+                html += '<div class="info">Configuration trouvée :</div>';
+                html += '<pre>' + JSON.stringify(config, null, 2) + '</pre>';
+                html += '<div class="info">Calcul Bureau (2 kg) :</div>';
+                html += '<pre>';
+                html += `Base Bureau    : ${prixBase} DA\n`;
+                html += `Poids (2 × ${prixParKg}) : ${poids * prixParKg} DA\n`;
+                html += `─────────────────────────\n`;
+                html += `Total          : ${fraisCalcules} DA\n`;
+                html += '</pre>';
+
+                if (fraisCalcules === 0) {
+                    html += '<div class="error">❌ PROBLÈME : Le total est 0 DA !</div>';
+                    html += '<div class="warning">⚠️ Vérifiez que baseBureau et parKgBureau sont définis</div>';
+                } else {
+                    html += '<div class="success">✅ Calcul correct !</div>';
+                }
+
+                resultDiv.innerHTML = html;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Erreur : ${error.message}</div>`;
+            }
+        }
+
+        async function diagnosticComplet() {
+            const resultDiv = document.getElementById('result-diagnostic');
+            resultDiv.innerHTML = '<div class="info">⏳ Diagnostic en cours...</div>';
+
+            let rapport = [];
+
+            try {
+                const token = getToken();
+                
+                // Test 1: Connexion API
+                rapport.push('🔍 Test 1: Connexion API');
+                const response = await fetch('http://localhost:1000/api/frais-livraison', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    rapport.push('✅ API accessible');
+                } else {
+                    rapport.push(`❌ Erreur API: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const frais = data.data || [];
+
+                // Test 2: Nombre de configurations
+                rapport.push('\n🔍 Test 2: Configurations');
+                rapport.push(`📊 ${frais.length} configuration(s) dans la base`);
+
+                // Test 3: Configuration spécifique
+                rapport.push('\n🔍 Test 3: Configuration Tizi → Adrar');
+                const config = frais.find(f => 
+                    f.wilayaSource === TIZI_OUZOU && f.wilayaDest === ADRAR
+                );
+
+                if (config) {
+                    rapport.push('✅ Configuration trouvée');
+                    rapport.push(`   - baseBureau: ${config.baseBureau || 0}`);
+                    rapport.push(`   - parKgBureau: ${config.parKgBureau || 0}`);
+                    rapport.push(`   - baseDomicile: ${config.baseDomicile || 0}`);
+                    rapport.push(`   - parKgDomicile: ${config.parKgDomicile || 0}`);
+                    
+                    // Test 4: Calcul
+                    rapport.push('\n🔍 Test 4: Calcul (2 kg, Bureau)');
+                    const prixBase = config.baseBureau || config.fraisStopDesk || 0;
+                    const prixParKg = config.parKgBureau || 0;
+                    const total = prixBase + (2 * prixParKg);
+                    
+                    rapport.push(`   Base: ${prixBase} DA`);
+                    rapport.push(`   Par kg: ${prixParKg} DA`);
+                    rapport.push(`   Total: ${total} DA`);
+                    
+                    if (total === 0) {
+                        rapport.push('   ❌ PROBLÈME: Total = 0 !');
+                        rapport.push('   💡 Solution: Vérifiez baseBureau et parKgBureau');
+                    } else {
+                        rapport.push('   ✅ Calcul OK');
+                    }
+                } else {
+                    rapport.push('❌ Configuration NON trouvée');
+                    rapport.push('💡 Solution: Utilisez le test 4 pour créer la configuration');
+                }
+
+                // Test 5: Vérifier autres configs
+                rapport.push('\n🔍 Test 5: Autres configurations');
+                if (frais.length > 0) {
+                    rapport.push('Configurations existantes:');
+                    frais.forEach((f, i) => {
+                        rapport.push(`   ${i+1}. ${f.wilayaSource} → ${f.wilayaDest}`);
+                    });
+                } else {
+                    rapport.push('❌ Aucune configuration dans la base');
+                }
+
+                const html = '<pre>' + rapport.join('\n') + '</pre>';
+                resultDiv.innerHTML = html;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Erreur : ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

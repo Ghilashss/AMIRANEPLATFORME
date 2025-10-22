@@ -1,0 +1,15 @@
+.fallback-icon {
+    display: none;
+    font-size: 24px;
+    color: #333;
+}
+
+img[style*="display: none"] + .fallback-icon {
+    display: inline-block;
+}
+
+.user img[style*="display: none"] + .fallback-icon {
+    font-size: 32px;
+    margin: 4px;
+    vertical-align: middle;
+}

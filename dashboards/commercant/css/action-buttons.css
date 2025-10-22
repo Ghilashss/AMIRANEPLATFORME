@@ -1,0 +1,104 @@
+/* Boutons d'action standardisés - Dashboard Commercant */
+.actions {
+    text-align: center !important;
+    padding: 8px !important;
+    white-space: nowrap !important;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap;
+}
+
+/* Forcer l'alignement horizontal des boutons */
+td.actions {
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+td.actions .action-btn {
+    display: inline-flex !important;
+    margin: 0 4px;
+}
+
+.action-btn {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid #e0e0e0 !important;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    margin: 0 4px;
+    vertical-align: middle;
+    min-width: 36px;
+    min-height: 36px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.action-btn:active {
+    transform: scale(0.95);
+}
+
+.action-btn i {
+    font-size: 1.3em;
+    pointer-events: none;
+    display: block;
+}
+
+/* Couleurs des boutons */
+.action-btn.view {
+    color: #4CAF50;
+}
+
+.action-btn.print {
+    color: #FF9800;
+}
+
+.action-btn.edit {
+    color: #2196F3;
+}
+
+.action-btn.delete {
+    color: #F44336;
+}
+
+/* Effets hover */
+.action-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.action-btn.view:hover {
+    background-color: rgba(76, 175, 80, 0.1) !important;
+    border-color: #4CAF50 !important;
+    color: #1e7e34;
+}
+
+.action-btn.print:hover {
+    background-color: rgba(255, 152, 0, 0.1) !important;
+    border-color: #FF9800 !important;
+    color: #E68900;
+}
+
+.action-btn.edit:hover {
+    background-color: rgba(33, 150, 243, 0.1) !important;
+    border-color: #2196F3 !important;
+    color: #0056b3;
+}
+
+.action-btn.delete:hover {
+    background-color: rgba(244, 67, 54, 0.1) !important;
+    border-color: #F44336 !important;
+    color: #c82333;
+}
+
+/* Centrage de la colonne Actions */
+td.actions, th.text-center, td.text-center {
+    text-align: center !important;
+}

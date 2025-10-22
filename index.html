@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sélection du rôle</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Branding gauche -->
+    <div class="branding">
+      <img src="logo.png" alt="Logo">
+      <h1>Logistics Manager</h1>
+      <p>Bienvenue dans votre plateforme de gestion logistique</p>
+    </div>
+
+    <!-- Choix des rôles -->
+    <div class="roles">
+      <h2>Choisissez votre rôle</h2>
+
+      <div class="role-grid">
+        <div class="role-card" onclick="selectRole('admin')">
+          <div class="role-info">
+            <div class="role-icon"><i class="fa-solid fa-user-shield"></i></div>
+            <div class="role-text">
+              <h3>Admin</h3>
+              <p>Gestion complète</p>
+            </div>
+          </div>
+          <div class="arrow">→</div>
+        </div>
+
+        <div class="role-card" onclick="selectRole('agence')">
+          <div class="role-info">
+            <div class="role-icon"><i class="fa-solid fa-building"></i></div>
+            <div class="role-text">
+              <h3>Agence</h3>
+              <p>Supervision locale</p>
+            </div>
+          </div>
+          <div class="arrow">→</div>
+        </div>
+
+        <div class="role-card" onclick="selectRole('agent')">
+          <div class="role-info">
+            <div class="role-icon"><i class="fa-solid fa-user-tie"></i></div>
+            <div class="role-text">
+              <h3>Agent du bureau</h3>
+              <p>Gestion des colis</p>
+            </div>
+          </div>
+          <div class="arrow">→</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Test Calcul Frais Livraison</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .simulator {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            border-left: 4px solid #28a745;
+        }
+        .result h3 {
+            margin-top: 0;
+            color: #28a745;
+        }
+        .calculation {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+        }
+        .total {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin-top: 15px;
+            padding: 15px;
+            background: #e7f3ff;
+            border-radius: 8px;
+            text-align: center;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+            padding: 10px;
+            background: #f8d7da;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .info {
+            color: #17a2b8;
+            padding: 10px;
+            background: #d1ecf1;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Calcul Frais de Livraison</h1>
+        
+        <div class="simulator">
+            <h2>Simulateur de Frais</h2>
+            
+            <div class="form-group">
+                <label>Wilaya Source</label>
+                <select id="wilayaSource">
+                    <option value="">Sélectionner...</option>
+                    <option value="16" data-nom="Alger">16 - Alger</option>
+                    <option value="31" data-nom="Oran">31 - Oran</option>
+                    <option value="09" data-nom="Blida">09 - Blida</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Wilaya Destination</label>
+                <select id="wilayaDest">
+                    <option value="">Sélectionner...</option>
+                    <option value="16" data-nom="Alger">16 - Alger</option>
+                    <option value="31" data-nom="Oran">31 - Oran</option>
+                    <option value="09" data-nom="Blida">09 - Blida</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Type de Livraison</label>
+                <select id="typeLivraison">
+                    <option value="">Sélectionner...</option>
+                    <option value="bureau">Bureau (Stop Desk)</option>
+                    <option value="domicile">Domicile</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Poids (kg)</label>
+                <input type="number" id="poids" min="0" step="0.1" value="0">
+            </div>
+
+            <div class="form-group">
+                <label>Type de Colis</label>
+                <select id="typeColis">
+                    <option value="normal">Normal</option>
+                    <option value="fragile">Fragile (+10%)</option>
+                </select>
+            </div>
+
+            <button onclick="calculerFrais()">💰 Calculer Frais</button>
+
+            <div id="result" class="result" style="display: none;">
+                <h3>📊 Résultat du Calcul</h3>
+                <div id="details"></div>
+            </div>
+        </div>
+
+        <div class="simulator">
+            <h2>📋 Configurations Disponibles</h2>
+            <div id="configs"></div>
+        </div>
+    </div>
+
+    <script>
+        // Données de test (similaires à MongoDB)
+        const fraisConfigs = [
+            {
+                wilayaSource: "16",
+                nomWilayaSource: "Alger",
+                wilayaDest: "31",
+                nomWilayaDest: "Oran",
+                fraisStopDesk: 500,
+                fraisDomicile: 700,
+                baseBureau: 400,
+                parKgBureau: 50,
+                baseDomicile: 600,
+                parKgDomicile: 70
+            },
+            {
+                wilayaSource: "16",
+                nomWilayaSource: "Alger",
+                wilayaDest: "09",
+                nomWilayaDest: "Blida",
+                fraisStopDesk: 300,
+                fraisDomicile: 400,
+                baseBureau: 250,
+                parKgBureau: 30,
+                baseDomicile: 350,
+                parKgDomicile: 40
+            },
+            {
+                wilayaSource: "31",
+                nomWilayaSource: "Oran",
+                wilayaDest: "16",
+                nomWilayaDest: "Alger",
+                fraisStopDesk: 500,
+                fraisDomicile: 700,
+                baseBureau: 400,
+                parKgBureau: 50,
+                baseDomicile: 600,
+                parKgDomicile: 70
+            }
+        ];
+
+        // Afficher les configurations
+        function afficherConfigs() {
+            const configsDiv = document.getElementById('configs');
+            let html = '<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">';
+            html += '<tr style="background: #667eea; color: white;"><th style="padding: 10px;">Source</th><th>Dest</th><th>Bureau</th><th>Domicile</th></tr>';
+            
+            fraisConfigs.forEach(c => {
+                html += `<tr style="border-bottom: 1px solid #ddd;">`;
+                html += `<td style="padding: 10px;">${c.wilayaSource} - ${c.nomWilayaSource}</td>`;
+                html += `<td>${c.wilayaDest} - ${c.nomWilayaDest}</td>`;
+                html += `<td>${c.baseBureau} + (${c.parKgBureau}/kg)</td>`;
+                html += `<td>${c.baseDomicile} + (${c.parKgDomicile}/kg)</td>`;
+                html += `</tr>`;
+            });
+            
+            html += '</table>';
+            configsDiv.innerHTML = html;
+        }
+
+        function calculerFrais() {
+            const resultDiv = document.getElementById('result');
+            const detailsDiv = document.getElementById('details');
+            
+            // Récupérer les valeurs
+            const wilayaSource = document.getElementById('wilayaSource').value;
+            const wilayaDest = document.getElementById('wilayaDest').value;
+            const typeLivraison = document.getElementById('typeLivraison').value;
+            const poids = parseFloat(document.getElementById('poids').value) || 0;
+            const typeColis = document.getElementById('typeColis').value;
+
+            // Validation
+            if (!wilayaSource || !wilayaDest || !typeLivraison || poids <= 0) {
+                detailsDiv.innerHTML = '<div class="error">❌ Veuillez remplir tous les champs avec un poids > 0</div>';
+                resultDiv.style.display = 'block';
+                return;
+            }
+
+            // Chercher la configuration
+            const config = fraisConfigs.find(f => 
+                f.wilayaSource === wilayaSource && 
+                f.wilayaDest === wilayaDest
+            );
+
+            if (!config) {
+                detailsDiv.innerHTML = `<div class="error">❌ Pas de frais configurés pour ${wilayaSource} → ${wilayaDest}</div>`;
+                resultDiv.style.display = 'block';
+                return;
+            }
+
+            // Calculer les frais
+            let prixBase = 0;
+            let prixParKg = 0;
+
+            if (typeLivraison === 'bureau') {
+                prixBase = config.baseBureau || config.fraisStopDesk || 0;
+                prixParKg = config.parKgBureau || 0;
+            } else if (typeLivraison === 'domicile') {
+                prixBase = config.baseDomicile || config.fraisDomicile || 0;
+                prixParKg = config.parKgDomicile || 0;
+            }
+
+            let frais = prixBase;
+            const fraisPoids = poids * prixParKg;
+            frais += fraisPoids;
+
+            let supplement = 0;
+            if (typeColis === 'fragile') {
+                supplement = frais * 0.10;
+                frais += supplement;
+            }
+
+            // Afficher les détails
+            let html = '<div class="info">📍 Route : ' + config.nomWilayaSource + ' → ' + config.nomWilayaDest + '</div>';
+            html += '<div class="info">📦 Type : ' + (typeLivraison === 'bureau' ? 'Bureau (Stop Desk)' : 'Domicile') + '</div>';
+            html += '<div class="calculation">';
+            html += '<strong>Calcul détaillé :</strong><br/>';
+            html += `Base ${typeLivraison} : ${prixBase.toFixed(2)} DA<br/>`;
+            html += `Poids (${poids} kg × ${prixParKg} DA/kg) : ${fraisPoids.toFixed(2)} DA<br/>`;
+            
+            if (typeColis === 'fragile') {
+                html += `<strong>Supplément Fragile (+10%) : ${supplement.toFixed(2)} DA</strong><br/>`;
+            }
+            
+            html += '<hr style="margin: 10px 0;"/>';
+            html += `Sous-total : ${(prixBase + fraisPoids).toFixed(2)} DA`;
+            html += '</div>';
+            
+            html += `<div class="total">💰 TOTAL : ${frais.toFixed(2)} DA</div>`;
+
+            detailsDiv.innerHTML = html;
+            resultDiv.style.display = 'block';
+        }
+
+        // Initialisation
+        window.onload = () => {
+            afficherConfigs();
+            
+            // Auto-calcul sur changement
+            document.getElementById('wilayaSource').addEventListener('change', () => {
+                if (document.getElementById('poids').value > 0) calculerFrais();
+            });
+            document.getElementById('wilayaDest').addEventListener('change', () => {
+                if (document.getElementById('poids').value > 0) calculerFrais();
+            });
+            document.getElementById('typeLivraison').addEventListener('change', () => {
+                if (document.getElementById('poids').value > 0) calculerFrais();
+            });
+            document.getElementById('poids').addEventListener('input', () => {
+                if (document.getElementById('poids').value > 0) calculerFrais();
+            });
+            document.getElementById('typeColis').addEventListener('change', () => {
+                if (document.getElementById('poids').value > 0) calculerFrais();
+            });
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+    "liveServer.settings.port": 5502,
+    "Codegeex.Chat.LanguagePreference": "English",
+    "Codegeex.Comment.LanguagePreference": "English",
+    "Codegeex.CommitMessage.LanguagePreference": "English",
+    "Codegeex.SidebarUI.LanguagePreference": "English",
+    "liveServer.settings.CustomHeader": "X-Content-Type-Options: nosniff",
+    "liveServer.settings.https": {
+        "enable": false
+    },
+    "files.associations": {
+        "*.js": "javascript",
+        "*.css": "css"
+    },
+    "liveServer.settings.mimeTypes": {
+        ".js": "application/javascript",
+        ".css": "text/css"
+    }
+}

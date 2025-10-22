@@ -1,0 +1,372 @@
+/* ========== Frais de livraison - Thème Plateforme ========== */
+:root {
+    --blue: #0b2b24;
+    --primary: #2196F3;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --white: #fff;
+    --light: #f4f6f9;
+    --border: #e0e0e0;
+    --shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.frais-container {
+    padding: 25px;
+    background: var(--light);
+    min-height: 100vh;
+}
+
+/* ========== En-tête de section ========== */
+.frais-container h2 {
+    color: var(--blue);
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.frais-container h2 i {
+    color: var(--primary);
+    font-size: 1.6rem;
+}
+
+.frais-container > p {
+    color: #666;
+    font-size: 0.95rem;
+    margin-bottom: 25px;
+    padding-left: 40px;
+}
+
+/* ========== Sélecteur de wilaya source ========== */
+.frais-form {
+    background: var(--white);
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    margin-bottom: 30px;
+    border-left: 4px solid var(--blue);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: var(--blue);
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-group label i {
+    color: var(--primary);
+    font-size: 1.1rem;
+}
+
+.form-group select,
+.form-group input {
+    padding: 12px 15px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+    background: var(--white);
+    color: #333;
+}
+
+.form-group select:focus,
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, var(--blue) 0%, #0a3d32 100%);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(11, 43, 36, 0.2);
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(11, 43, 36, 0.3);
+}
+
+.btn-secondary:active {
+    transform: translateY(0);
+}
+
+.btn-secondary i {
+    font-size: 1.1rem;
+}
+
+/* ========== En-tête du tableau ========== */
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 20px;
+    background: var(--white);
+    padding: 20px 25px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
+
+.table-header h3 {
+    color: var(--blue);
+    font-size: 1.3rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.table-header h3 i {
+    color: var(--primary);
+}
+
+.table-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* ========== Barre de recherche ========== */
+.search-box {
+    position: relative;
+    min-width: 250px;
+}
+
+.search-box i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary);
+    font-size: 1.1rem;
+}
+
+.search-box input {
+    padding: 12px 15px 12px 45px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    width: 100%;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+/* ========== Tableau classique et simple ========== */
+.frais-table-wrapper {
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.frais-table-modern {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--white);
+    font-size: 0.9rem;
+}
+
+.frais-table-modern thead {
+    background: linear-gradient(135deg, var(--blue) 0%, #0a3d32 100%);
+}
+
+.frais-table-modern thead tr:first-child th {
+    color: var(--white);
+    font-weight: 600;
+    padding: 14px 12px;
+    text-align: left;
+    font-size: 0.85rem;
+    border-right: 1px solid rgba(255,255,255,0.1);
+}
+
+.frais-table-modern thead tr.sub-header th {
+    color: rgba(255,255,255,0.9);
+    font-weight: 500;
+    padding: 10px 12px;
+    text-align: center;
+    font-size: 0.75rem;
+    border-right: 1px solid rgba(255,255,255,0.1);
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.frais-table-modern thead th:last-child {
+    border-right: none;
+}
+
+.frais-table-modern tbody tr {
+    transition: background 0.2s;
+    border-bottom: 1px solid var(--border);
+}
+
+.frais-table-modern tbody tr:hover {
+    background: rgba(33, 150, 243, 0.04);
+}
+
+.frais-table-modern tbody tr.has-data {
+    background: rgba(40, 167, 69, 0.02);
+}
+
+.frais-table-modern tbody td {
+    padding: 10px 12px;
+    color: #333;
+    font-size: 0.9rem;
+    border-right: 1px solid var(--border);
+}
+
+.frais-table-modern tbody td:last-child {
+    border-right: none;
+}
+
+.frais-table-modern tbody td:first-child {
+    font-weight: 700;
+    color: var(--primary);
+    text-align: center;
+}
+
+.frais-table-modern tbody td:nth-child(2) {
+    font-weight: 600;
+    color: var(--blue);
+}
+
+/* ========== Inputs simples ========== */
+.form-input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    background: var(--white);
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.form-input::placeholder {
+    color: #999;
+}
+
+/* ========== Bouton simple ========== */
+.btn-save-simple {
+    background: var(--success);
+    color: var(--white);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.btn-save-simple:hover {
+    background: #1e7e34;
+    transform: scale(1.05);
+}
+
+.btn-save-simple:active {
+    transform: scale(0.98);
+}
+
+/* ========== Utilitaires ========== */
+.text-center {
+    text-align: center !important;
+}
+
+/* ========== Champs de saisie (pour compatibilité) ========== */
+
+/* ========== Boutons d'action (styles compatibles) ========== */
+
+/* ========== Badge de statut ========== */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--border);
+    margin-bottom: 20px;
+}
+
+.empty-state p {
+    font-size: 1.1rem;
+    color: #666;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 768px) {
+    .frais-container {
+        padding: 15px;
+    }
+    
+    .table-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .search-box {
+        width: 100%;
+        min-width: auto;
+    }
+    
+    .modern-table {
+        font-size: 0.85rem;
+    }
+    
+    .modern-table thead th,
+    .modern-table tbody td {
+        padding: 12px 8px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}

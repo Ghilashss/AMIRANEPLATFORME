@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Vérification Tarifs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        select {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        select:hover {
+            border-color: #bbb;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        #result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .warning {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        .info {
+            color: #17a2b8;
+        }
+        .message-box {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .message-box.success-box {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+        .message-box.error-box {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+        .buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Test Vérification des Tarifs</h1>
+        <p class="subtitle">Vérifier si les tarifs sont configurés pour une combinaison wilaya source → destination</p>
+        
+        <div class="buttons">
+            <button onclick="loadFraisLivraison()">📋 Charger Frais de Livraison</button>
+            <button onclick="loadWilayasIntoSelects()">🌍 Peupler les Selects</button>
+            <button onclick="clearAll()">🗑️ Effacer Tout</button>
+        </div>
+
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-number" id="totalFrais">0</div>
+                <div class="stat-label">Frais Configurés</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalWilayas">0</div>
+                <div class="stat-label">Wilayas Disponibles</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalCombos">0</div>
+                <div class="stat-label">Combinaisons Possibles</div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="wilayaSource">🏢 Wilaya Source (Expéditeur)</label>
+            <select id="wilayaSource">
+                <option value="">Sélectionner wilaya source...</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="wilayaDest">📦 Wilaya Destination</label>
+            <select id="wilayaDest">
+                <option value="">Sélectionner wilaya destination...</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="typeLivraison">🚚 Type de Livraison</label>
+            <select id="typeLivraison">
+                <option value="bureau">Bureau (Stop Desk)</option>
+                <option value="domicile">Domicile</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="poids">⚖️ Poids du Colis (kg)</label>
+            <input type="number" id="poids" step="0.1" min="0" value="3" 
+                   style="width: 100%; padding: 12px; font-size: 14px; border: 2px solid #ddd; border-radius: 6px;">
+            <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
+                🔢 Si poids > 5kg: Tarif = Base + (Poids - 5) × Tarif/kg
+            </small>
+        </div>
+
+        <div class="message-box" id="messageBox"></div>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:1000/api';
+        let allFraisLivraison = [];
+        
+        function log(message, type = 'info') {
+            const result = document.getElementById('result');
+            const classes = {
+                success: 'success',
+                error: 'error',
+                warning: 'warning',
+                info: 'info'
+            };
+            result.innerHTML += `<span class="${classes[type] || 'info'}">${message}</span>\n`;
+            console.log(message);
+        }
+
+        // Fonction pour calculer les frais selon le poids
+        function calculateFraisLivraison(frais, typeLivraison, poids) {
+            if (!frais) return 0;
+            
+            const poidsKg = parseFloat(poids) || 0;
+            const SEUIL_POIDS = 5;
+            
+            let tarifBase = 0;
+            let tarifParKg = 0;
+            
+            if (typeLivraison === 'domicile') {
+                tarifBase = frais.baseDomicile || frais.fraisDomicile || 0;
+                tarifParKg = frais.parKgDomicile || 0;
+            } else {
+                tarifBase = frais.baseBureau || frais.fraisStopDesk || 0;
+                tarifParKg = frais.parKgBureau || 0;
+            }
+            
+            if (poidsKg <= SEUIL_POIDS) {
+                return tarifBase;
+            }
+            
+            const poidsSupplementaire = poidsKg - SEUIL_POIDS;
+            const fraisSupplementaires = poidsSupplementaire * tarifParKg;
+            const tarifTotal = tarifBase + fraisSupplementaires;
+            
+            return tarifTotal;
+        }
+
+        function clearAll() {
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('messageBox').style.display = 'none';
+            document.getElementById('stats').style.display = 'none';
+        }
+
+        async function loadFraisLivraison() {
+            clearAll();
+            log('⏳ Chargement des frais de livraison depuis MongoDB...', 'info');
+            
+            try {
+                const token = localStorage.getItem('admin_token');
+                if (!token) {
+                    log('❌ Token admin non trouvé dans localStorage', 'error');
+                    return;
+                }
+                
+                const response = await fetch(`${API_URL}/frais-livraison`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                allFraisLivraison = data.data || data.fraisLivraison || [];
+                
+                log(`✅ ${allFraisLivraison.length} frais de livraison chargés`, 'success');
+                log('\n📊 Détails des frais:', 'info');
+                
+                allFraisLivraison.forEach((frais, index) => {
+                    log(`${index + 1}. ${frais.wilayaSource} → ${frais.wilayaDest}: Bureau=${frais.fraisStopDesk}DA, Domicile=${frais.fraisDomicile}DA`, 'info');
+                });
+
+                // Afficher les stats
+                const wilayasSet = new Set();
+                allFraisLivraison.forEach(f => {
+                    wilayasSet.add(f.wilayaSource);
+                    wilayasSet.add(f.wilayaDest);
+                });
+                
+                document.getElementById('totalFrais').textContent = allFraisLivraison.length;
+                document.getElementById('totalWilayas').textContent = wilayasSet.size;
+                document.getElementById('totalCombos').textContent = wilayasSet.size * wilayasSet.size;
+                document.getElementById('stats').style.display = 'grid';
+                
+            } catch (error) {
+                log('❌ Erreur: ' + error.message, 'error');
+                console.error(error);
+            }
+        }
+
+        async function loadWilayasIntoSelects() {
+            log('\n⏳ Peuplement des selects...', 'info');
+            
+            try {
+                if (allFraisLivraison.length === 0) {
+                    await loadFraisLivraison();
+                }
+                
+                // Extraire TOUTES les wilayas (sources ET destinations)
+                const wilayasSet = new Set();
+                allFraisLivraison.forEach(frais => {
+                    if (frais.wilayaSource) wilayasSet.add(frais.wilayaSource);
+                    if (frais.wilayaDest) wilayasSet.add(frais.wilayaDest);
+                });
+                
+                const wilayas = Array.from(wilayasSet).sort();
+                
+                // Peupler les deux selects
+                const sourceSelect = document.getElementById('wilayaSource');
+                const destSelect = document.getElementById('wilayaDest');
+                
+                [sourceSelect, destSelect].forEach(select => {
+                    select.innerHTML = '<option value="">Sélectionner...</option>';
+                    wilayas.forEach(wilaya => {
+                        const option = document.createElement('option');
+                        option.value = wilaya;
+                        option.textContent = wilaya;
+                        select.appendChild(option);
+                    });
+                });
+                
+                log(`✅ Selects remplis avec ${wilayas.length} wilayas`, 'success');
+                log('📍 Wilayas: ' + wilayas.join(', '), 'info');
+                
+            } catch (error) {
+                log('❌ Erreur: ' + error.message, 'error');
+            }
+        }
+
+        function checkTarifsConfiguration(wilayaSource, wilayaDest, typeLivraison, poids = 0) {
+            if (!wilayaSource || !wilayaDest) {
+                return { exists: false, message: 'Veuillez sélectionner les wilayas source et destination' };
+            }
+
+            const frais = allFraisLivraison.find(f => 
+                f.wilayaSource === wilayaSource && f.wilayaDest === wilayaDest
+            );
+
+            if (!frais) {
+                return { 
+                    exists: false, 
+                    message: `⚠️ TARIFS NON CONFIGURÉS`,
+                    details: `Aucun tarif trouvé pour ${wilayaSource} → ${wilayaDest}`,
+                    suggestion: 'Veuillez configurer les frais de livraison pour cette combinaison dans la section admin.'
+                };
+            }
+
+            const tarifCalcule = calculateFraisLivraison(frais, typeLivraison, poids);
+            
+            if (!tarifCalcule || tarifCalcule === 0) {
+                return { 
+                    exists: false, 
+                    message: `⚠️ TARIF ${typeLivraison.toUpperCase()} NON CONFIGURÉ`,
+                    details: `Le tarif ${typeLivraison} est à 0 DA pour ${wilayaSource} → ${wilayaDest}`,
+                    suggestion: 'Veuillez mettre à jour ce tarif dans la configuration.'
+                };
+            }
+
+            const poidsKg = parseFloat(poids) || 0;
+            let detailsCalcul = '';
+            
+            if (poidsKg > 5) {
+                const tarifBase = typeLivraison === 'domicile' ? 
+                    (frais.baseDomicile || frais.fraisDomicile) : 
+                    (frais.baseBureau || frais.fraisStopDesk);
+                const tarifParKg = typeLivraison === 'domicile' ? 
+                    frais.parKgDomicile : frais.parKgBureau;
+                const poidsExtra = poidsKg - 5;
+                const fraisExtra = poidsExtra * tarifParKg;
+                
+                detailsCalcul = `\n📊 Calcul détaillé:\n` +
+                               `   • Tarif base (≤5kg): ${tarifBase} DA\n` +
+                               `   • Poids extra: ${poidsExtra.toFixed(2)} kg × ${tarifParKg} DA/kg = ${fraisExtra} DA\n` +
+                               `   • TOTAL: ${tarifBase} + ${fraisExtra} = ${tarifCalcule} DA`;
+            } else {
+                detailsCalcul = `\n📊 Poids ≤ 5kg → Tarif de base: ${tarifCalcule} DA`;
+            }
+
+            return { 
+                exists: true, 
+                tarif: tarifCalcule,
+                frais: frais,
+                poids: poidsKg,
+                message: `✅ Tarif ${typeLivraison}: ${tarifCalcule} DA`,
+                details: `Bureau: ${frais.fraisStopDesk || frais.baseBureau} DA | Domicile: ${frais.fraisDomicile || frais.baseDomicile} DA${detailsCalcul}`
+            };
+        }
+
+        function displayMessage(message, details, isError = false) {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.className = 'message-box ' + (isError ? 'error-box' : 'success-box');
+            messageBox.innerHTML = `
+                <div style="font-size: 16px; margin-bottom: 5px;">${message}</div>
+                ${details ? `<div style="font-size: 13px; opacity: 0.9;">${details}</div>` : ''}
+            `;
+            messageBox.style.display = 'block';
+        }
+
+        function verifyTarifs() {
+            const wilayaSource = document.getElementById('wilayaSource').value;
+            const wilayaDest = document.getElementById('wilayaDest').value;
+            const typeLivraison = document.getElementById('typeLivraison').value;
+            const poids = document.getElementById('poids').value || 0;
+
+            log('\n🔍 Vérification des tarifs...', 'info');
+            log(`Source: ${wilayaSource || '(non sélectionné)'}`, 'info');
+            log(`Destination: ${wilayaDest || '(non sélectionné)'}`, 'info');
+            log(`Type: ${typeLivraison}`, 'info');
+            log(`Poids: ${poids} kg`, 'info');
+
+            if (!wilayaSource || !wilayaDest) {
+                document.getElementById('messageBox').style.display = 'none';
+                return;
+            }
+
+            const result = checkTarifsConfiguration(wilayaSource, wilayaDest, typeLivraison, poids);
+            
+            log('\n' + '='.repeat(50), 'info');
+            if (result.exists) {
+                log(result.message, 'success');
+                log(result.details, 'success');
+                displayMessage(result.message, result.details, false);
+            } else {
+                log(result.message, 'error');
+                log(result.details, 'error');
+                if (result.suggestion) {
+                    log('💡 ' + result.suggestion, 'warning');
+                }
+                displayMessage(result.message, result.details + '<br><br>💡 ' + (result.suggestion || ''), true);
+            }
+            log('='.repeat(50), 'info');
+        }
+
+        // Écouteurs d'événements
+        document.getElementById('wilayaSource').addEventListener('change', verifyTarifs);
+        document.getElementById('wilayaDest').addEventListener('change', verifyTarifs);
+        document.getElementById('typeLivraison').addEventListener('change', verifyTarifs);
+        document.getElementById('poids').addEventListener('input', verifyTarifs);
+
+        // Auto-load au démarrage
+        window.addEventListener('DOMContentLoaded', () => {
+            log('🚀 Page chargée - Prêt pour les tests\n', 'success');
+            log('📌 Instructions:', 'info');
+            log('1. Cliquez sur "Charger Frais de Livraison" pour charger les données', 'info');
+            log('2. Sélectionnez une wilaya source', 'info');
+            log('3. Sélectionnez une wilaya destination', 'info');
+            log('4. Changez le type de livraison pour voir les différents tarifs\n', 'info');
+        });
+    </script>
+</body>
+</html>

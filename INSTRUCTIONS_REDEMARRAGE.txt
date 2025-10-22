@@ -1,0 +1,67 @@
+╔════════════════════════════════════════════════════════╗
+║  ⚠️ LE FRONTEND N'EST PAS REDÉMARRÉ                   ║
+║     LE PROXY N'EST PAS ACTIF !                        ║
+╚════════════════════════════════════════════════════════╝
+
+🔴 PROBLÈME:
+   Le frontend retourne encore "404 - Fichier non trouvé"
+   Cela prouve qu'il tourne avec l'ANCIEN code (sans proxy)
+
+🎯 CE QU'IL FAUT FAIRE:
+
+┌─────────────────────────────────────────────────────┐
+│ MÉTHODE 1: Script PowerShell (RECOMMANDÉ)          │
+└─────────────────────────────────────────────────────┘
+
+1. Clic DROIT sur: FORCE-RESTART.ps1
+2. Choisir: "Exécuter avec PowerShell"
+
+Ce script va:
+✓ Tuer TOUS les processus Node (même bloqués)
+✓ Vérifier que tout est bien arrêté
+✓ Redémarrer Backend (port 1000)
+✓ Redémarrer Frontend AVEC PROXY (port 9000)
+
+┌─────────────────────────────────────────────────────┐
+│ MÉTHODE 2: Gestionnaire des tâches                 │
+└─────────────────────────────────────────────────────┘
+
+1. Appuyer sur: Ctrl + Shift + Esc
+2. Aller dans l'onglet: "Détails"
+3. Trouver TOUS les "node.exe"
+4. Clic droit → "Terminer la tâche" (sur CHAQUE node.exe)
+5. Double-cliquer sur: RESTART-ALL.bat
+
+┌─────────────────────────────────────────────────────┐
+│ MÉTHODE 3: Redémarrer VS Code                      │
+└─────────────────────────────────────────────────────┘
+
+1. Fermer COMPLÈTEMENT VS Code (Fichier → Quitter)
+2. Le rouvrir
+3. Double-cliquer sur: RESTART-ALL.bat
+
+╔════════════════════════════════════════════════════════╗
+║  APRÈS LE REDÉMARRAGE                                 ║
+╚════════════════════════════════════════════════════════╝
+
+1. Appuyer sur F5 pour rafraîchir la page
+2. Cliquer sur le bouton ✓ (marquer comme traité)
+3. Ouvrir la console (F12)
+4. Vous devriez voir:
+
+   🔄 Proxy vers backend: http://localhost:1000/api/retours/...
+   📥 Response status: 200
+   ✅ Retour marqué comme traité
+
+╔════════════════════════════════════════════════════════╗
+║  POURQUOI LE PROXY N'EST PAS ACTIF ?                 ║
+╚════════════════════════════════════════════════════════╝
+
+Le serveur frontend (PID 6884) a démarré AVANT que
+j'ajoute le code du proxy dans server-frontend.js
+
+Il FAUT le redémarrer pour que le nouveau code soit chargé !
+
+Le processus 6884 est "verrouillé" et refuse de s'arrêter
+normalement. C'est pourquoi il faut utiliser une des
+méthodes ci-dessus.

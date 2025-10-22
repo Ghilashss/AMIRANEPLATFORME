@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test - Wilayas et Agences</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #0b2b24;
+      border-bottom: 3px solid #0b2b24;
+      padding-bottom: 10px;
+    }
+    h2 {
+      color: #0b2b24;
+      margin-top: 30px;
+    }
+    .section {
+      margin: 20px 0;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 8px;
+    }
+    .success {
+      color: green;
+      font-weight: bold;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+    .info {
+      background: #e3f2fd;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 10px 0;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      padding: 10px;
+      margin: 5px 0;
+      background: white;
+      border-left: 4px solid #0b2b24;
+      border-radius: 4px;
+    }
+    button {
+      background: #0b2b24;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background: #0a241f;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, #0b2b24 0%, #1a4a3d 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .stat-card h3 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    .stat-card .number {
+      font-size: 32px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Test - Wilayas et Agences</h1>
+    
+    <div class="info">
+      <strong>📌 Objectif :</strong> Vérifier que les wilayas et agences se chargent correctement pour le formulaire de création de colis.
+    </div>
+
+    <div class="section">
+      <h2>📊 Statistiques</h2>
+      <div class="stats">
+        <div class="stat-card">
+          <h3>Wilayas</h3>
+          <div class="number" id="wilayasCount">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Agences</h3>
+          <div class="number" id="agencesCount">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Connexion</h3>
+          <div class="number" id="authStatus">❌</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>🔐 Connexion</h2>
+      <p id="userInfo" class="error">Non connecté</p>
+      <button onclick="testLogin()">Se connecter (commercant@test.com)</button>
+      <button onclick="logout()">Se déconnecter</button>
+    </div>
+
+    <div class="section">
+      <h2>📍 Wilayas disponibles</h2>
+      <button onclick="loadWilayas()">Charger les Wilayas</button>
+      <div id="wilayasResult"></div>
+    </div>
+
+    <div class="section">
+      <h2>🏢 Agences disponibles</h2>
+      <button onclick="loadAgences()">Charger les Agences</button>
+      <div id="agencesResult"></div>
+    </div>
+
+    <div class="section">
+      <h2>💰 Test calcul des frais</h2>
+      <button onclick="testCalculFrais()">Tester le calcul (Oran + Domicile)</button>
+      <div id="fraisResult"></div>
+    </div>
+
+    <div class="section">
+      <h2>🚀 Aller au Dashboard</h2>
+      <button onclick="goToDashboard()">Ouvrir le Dashboard Commerçant</button>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:1000/api';
+    const TOKEN_KEY = 'token';
+    const USER_KEY = 'user';
+
+    // Vérifier la connexion au démarrage
+    checkAuth();
+
+    function checkAuth() {
+      const token = localStorage.getItem(TOKEN_KEY);
+      const user = localStorage.getItem(USER_KEY);
+      
+      if (token && user) {
+        const userData = JSON.parse(user);
+        document.getElementById('userInfo').innerHTML = `
+          <span class="success">✅ Connecté en tant que: ${userData.email} (${userData.role})</span>
+        `;
+        document.getElementById('authStatus').textContent = '✅';
+      } else {
+        document.getElementById('userInfo').innerHTML = `
+          <span class="error">❌ Non connecté - Veuillez vous connecter</span>
+        `;
+        document.getElementById('authStatus').textContent = '❌';
+      }
+    }
+
+    async function testLogin() {
+      try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: 'commercant@test.com',
+            password: '123456'
+          })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+          localStorage.setItem(TOKEN_KEY, data.token);
+          localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+          alert('✅ Connexion réussie !');
+          checkAuth();
+        } else {
+          alert('❌ Erreur: ' + data.message);
+        }
+      } catch (error) {
+        alert('❌ Erreur de connexion: ' + error.message);
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      alert('✅ Déconnexion réussie');
+      checkAuth();
+      document.getElementById('wilayasCount').textContent = '0';
+      document.getElementById('agencesCount').textContent = '0';
+    }
+
+    async function loadWilayas() {
+      const result = document.getElementById('wilayasResult');
+      result.innerHTML = '<p>⏳ Chargement des wilayas...</p>';
+      
+      try {
+        const response = await fetch(`${API_URL}/wilayas`);
+        const data = await response.json();
+        
+        if (data.success) {
+          const wilayas = data.data;
+          document.getElementById('wilayasCount').textContent = wilayas.length;
+          
+          let html = `<p class="success">✅ ${wilayas.length} wilayas chargées</p><ul>`;
+          wilayas.slice(0, 10).forEach(w => {
+            html += `<li>
+              <strong>${w.code} - ${w.nom}</strong><br>
+              Domicile: ${w.fraisLivraison.domicile} DA | Bureau: ${w.fraisLivraison.stopDesk} DA | 
+              Délai: ${w.delaiLivraison}
+            </li>`;
+          });
+          html += '</ul>';
+          if (wilayas.length > 10) {
+            html += `<p><em>... et ${wilayas.length - 10} autres wilayas</em></p>`;
+          }
+          result.innerHTML = html;
+        } else {
+          result.innerHTML = `<p class="error">❌ Erreur: ${data.message}</p>`;
+        }
+      } catch (error) {
+        result.innerHTML = `<p class="error">❌ Erreur: ${error.message}</p>`;
+      }
+    }
+
+    async function loadAgences() {
+      const result = document.getElementById('agencesResult');
+      result.innerHTML = '<p>⏳ Chargement des agences...</p>';
+      
+      const token = localStorage.getItem(TOKEN_KEY);
+      if (!token) {
+        result.innerHTML = '<p class="error">❌ Vous devez être connecté pour voir les agences</p>';
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${API_URL}/agences`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        if (response.ok) {
+          const agences = data;
+          document.getElementById('agencesCount').textContent = agences.length;
+          
+          let html = `<p class="success">✅ ${agences.length} agences chargées</p><ul>`;
+          agences.forEach(a => {
+            html += `<li>
+              <strong>${a.nom}</strong><br>
+              Wilaya: ${a.wilayaText} (${a.wilaya}) | 
+              Téléphone: ${a.telephone} | 
+              Email: ${a.email}
+            </li>`;
+          });
+          html += '</ul>';
+          result.innerHTML = html;
+        } else {
+          result.innerHTML = `<p class="error">❌ Erreur: ${data.message}</p>`;
+        }
+      } catch (error) {
+        result.innerHTML = `<p class="error">❌ Erreur: ${error.message}</p>`;
+      }
+    }
+
+    async function testCalculFrais() {
+      const result = document.getElementById('fraisResult');
+      result.innerHTML = '<p>⏳ Test du calcul...</p>';
+      
+      try {
+        // Charger les wilayas
+        const response = await fetch(`${API_URL}/wilayas`);
+        const data = await response.json();
+        
+        if (data.success) {
+          // Trouver Oran (code 31)
+          const oran = data.data.find(w => w.code === '31');
+          
+          if (oran) {
+            const prixColis = 5000;
+            const fraisDomicile = oran.fraisLivraison.domicile;
+            const fraisBureau = oran.fraisLivraison.stopDesk;
+            const totalDomicile = prixColis + fraisDomicile;
+            const totalBureau = prixColis + fraisBureau;
+            
+            result.innerHTML = `
+              <div class="success">
+                <h3>✅ Calcul pour Oran (31)</h3>
+                <p><strong>Prix du colis:</strong> ${prixColis} DA</p>
+                
+                <h4>📍 Livraison à domicile:</h4>
+                <p>Frais: ${fraisDomicile} DA</p>
+                <p><strong>TOTAL: ${totalDomicile} DA</strong></p>
+                
+                <h4>🏢 Livraison au bureau:</h4>
+                <p>Frais: ${fraisBureau} DA</p>
+                <p><strong>TOTAL: ${totalBureau} DA</strong></p>
+              </div>
+            `;
+          } else {
+            result.innerHTML = '<p class="error">❌ Wilaya Oran non trouvée</p>';
+          }
+        }
+      } catch (error) {
+        result.innerHTML = `<p class="error">❌ Erreur: ${error.message}</p>`;
+      }
+    }
+
+    function goToDashboard() {
+      const token = localStorage.getItem(TOKEN_KEY);
+      if (!token) {
+        alert('❌ Vous devez être connecté d\'abord');
+        return;
+      }
+      window.location.href = '/dashboards/commercant/commercant-dashboard.html';
+    }
+
+    // Charger automatiquement au démarrage
+    window.addEventListener('load', function() {
+      setTimeout(() => {
+        loadWilayas();
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (token) {
+          loadAgences();
+        }
+      }, 500);
+    });
+  </script>
+</body>
+</html>

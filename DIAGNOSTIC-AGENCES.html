@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnostic Agences</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .auth-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .agence-card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .agence-nom {
+            font-weight: bold;
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .agence-info {
+            color: #666;
+            font-size: 14px;
+            margin: 4px 0;
+        }
+        .wilaya-code {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .error {
+            background: #fee;
+            border-left-color: #e74c3c;
+            color: #c0392b;
+        }
+        .success {
+            background: #efe;
+            border-left-color: #27ae60;
+            color: #27ae60;
+        }
+        .warning {
+            background: #ffeaa7;
+            border-left-color: #fdcb6e;
+            color: #6c5ce7;
+        }
+        #results {
+            margin-top: 30px;
+        }
+        .summary {
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .summary h2 {
+            margin: 0 0 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Diagnostic des Agences</h1>
+        <p class="subtitle">Vérification des agences et de leurs wilayas</p>
+
+        <div class="auth-section">
+            <h3>🔐 Authentification</h3>
+            <input type="text" id="token" placeholder="Collez votre token JWT ici (depuis sessionStorage.auth_token)">
+            <button onclick="loadAgences()">🔍 Charger les agences</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        async function loadAgences() {
+            const token = document.getElementById('token').value || sessionStorage.getItem('auth_token');
+            const resultsDiv = document.getElementById('results');
+            
+            if (!token) {
+                resultsDiv.innerHTML = '<div class="agence-card error">❌ Veuillez fournir un token d\'authentification</div>';
+                return;
+            }
+
+            resultsDiv.innerHTML = '<div class="agence-card">⏳ Chargement des agences...</div>';
+
+            try {
+                const response = await fetch('http://localhost:1000/api/agences', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('📦 Réponse API agences:', data);
+
+                let agences = [];
+                if (Array.isArray(data)) {
+                    agences = data;
+                } else if (data.agences && Array.isArray(data.agences)) {
+                    agences = data.agences;
+                } else if (data.data && Array.isArray(data.data)) {
+                    agences = data.data;
+                }
+
+                if (agences.length === 0) {
+                    resultsDiv.innerHTML = '<div class="agence-card warning">⚠️ Aucune agence trouvée dans la base de données</div>';
+                    return;
+                }
+
+                // Charger les wilayas pour afficher les noms
+                const wilayasResponse = await fetch('http://localhost:1000/api/wilayas', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const wilayasData = await wilayasResponse.json();
+                const wilayas = wilayasData.data || wilayasData;
+
+                // Regrouper les agences par wilaya
+                const agencesParWilaya = {};
+                agences.forEach(agence => {
+                    const wilayaCode = agence.wilaya;
+                    if (!agencesParWilaya[wilayaCode]) {
+                        agencesParWilaya[wilayaCode] = [];
+                    }
+                    agencesParWilaya[wilayaCode].push(agence);
+                });
+
+                let html = `
+                    <div class="summary">
+                        <h2>📊 Résumé</h2>
+                        <p><strong>${agences.length}</strong> agences trouvées</p>
+                        <p>Réparties dans <strong>${Object.keys(agencesParWilaya).length}</strong> wilayas</p>
+                    </div>
+                `;
+
+                // Afficher les agences par wilaya
+                Object.keys(agencesParWilaya).sort().forEach(wilayaCode => {
+                    const wilaya = wilayas.find(w => w.code === wilayaCode);
+                    const wilayaNom = wilaya ? wilaya.nom : 'Inconnue';
+                    const agencesWilaya = agencesParWilaya[wilayaCode];
+
+                    html += `<h3>📍 Wilaya ${wilayaCode} - ${wilayaNom} (${agencesWilaya.length} agence${agencesWilaya.length > 1 ? 's' : ''})</h3>`;
+
+                    agencesWilaya.forEach(agence => {
+                        html += `
+                            <div class="agence-card">
+                                <div class="agence-nom">${agence.nom}</div>
+                                <div class="agence-info">
+                                    <span class="wilaya-code">Code: ${agence.wilaya}</span>
+                                    Wilaya: ${wilayaNom}
+                                </div>
+                                <div class="agence-info">📞 ${agence.telephone || 'Non renseigné'}</div>
+                                <div class="agence-info">📍 ${agence.adresse || 'Non renseignée'}</div>
+                                <div class="agence-info" style="font-size: 11px; color: #999;">ID: ${agence._id}</div>
+                            </div>
+                        `;
+                    });
+                });
+
+                resultsDiv.innerHTML = html;
+
+            } catch (error) {
+                console.error('❌ Erreur:', error);
+                resultsDiv.innerHTML = `<div class="agence-card error">❌ Erreur: ${error.message}</div>`;
+            }
+        }
+
+        // Auto-charger si token présent
+        window.addEventListener('DOMContentLoaded', () => {
+            const token = sessionStorage.getItem('auth_token');
+            if (token) {
+                document.getElementById('token').value = token;
+                loadAgences();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Bureaux/Agences</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
+    h1 { color: #0b2b24; }
+    button { background: #0b2b24; color: white; padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; margin: 10px 5px; }
+    button:hover { background: #0a241f; }
+    .result { background: #f9f9f9; padding: 15px; border-radius: 5px; margin: 15px 0; }
+    .success { color: green; }
+    .error { color: red; }
+    pre { background: #2d2d2d; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Test Chargement des Bureaux/Agences</h1>
+    
+    <div>
+      <h3>Étape 1 : Se connecter</h3>
+      <button onclick="login()">Se connecter (commercant@test.com)</button>
+      <div id="loginResult"></div>
+    </div>
+
+    <div>
+      <h3>Étape 2 : Tester l'API Agences</h3>
+      <button onclick="testAgences()">Charger les agences</button>
+      <div id="agencesResult"></div>
+    </div>
+
+    <div>
+      <h3>Étape 3 : Remplir les selects</h3>
+      <label>Bureau Source:</label>
+      <select id="bureauSource">
+        <option value="">Sélectionner...</option>
+      </select>
+      <br><br>
+      <label>Bureau Destination:</label>
+      <select id="bureauDest">
+        <option value="">Sélectionner...</option>
+      </select>
+      <br><br>
+      <button onclick="fillSelects()">Remplir les listes</button>
+      <div id="selectsResult"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:1000/api';
+    let currentToken = null;
+
+    async function login() {
+      const result = document.getElementById('loginResult');
+      result.innerHTML = '<p>⏳ Connexion en cours...</p>';
+      
+      try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: 'commercant@test.com',
+            password: '123456'
+          })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+          currentToken = data.token;
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          result.innerHTML = `
+            <div class="result success">
+              <p>✅ Connexion réussie !</p>
+              <p><strong>Token:</strong> ${currentToken.substring(0, 50)}...</p>
+              <p><strong>Utilisateur:</strong> ${data.user.email}</p>
+            </div>
+          `;
+        } else {
+          result.innerHTML = `<div class="result error">❌ Erreur: ${data.message}</div>`;
+        }
+      } catch (error) {
+        result.innerHTML = `<div class="result error">❌ Erreur: ${error.message}</div>`;
+      }
+    }
+
+    async function testAgences() {
+      const result = document.getElementById('agencesResult');
+      result.innerHTML = '<p>⏳ Chargement des agences...</p>';
+      
+      const token = currentToken || localStorage.getItem('token');
+      
+      if (!token) {
+        result.innerHTML = '<div class="result error">❌ Vous devez d\'abord vous connecter !</div>';
+        return;
+      }
+
+      try {
+        console.log('🔵 Appel API avec token:', token.substring(0, 30) + '...');
+        
+        const response = await fetch(`${API_URL}/agences`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        console.log('📡 Response status:', response.status);
+        console.log('📡 Response headers:', response.headers);
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('📦 Données reçues:', data);
+          
+          result.innerHTML = `
+            <div class="result success">
+              <p>✅ ${data.length || data.data?.length || 0} agences reçues</p>
+              <pre>${JSON.stringify(data, null, 2)}</pre>
+            </div>
+          `;
+        } else {
+          const errorText = await response.text();
+          console.error('❌ Erreur:', errorText);
+          result.innerHTML = `
+            <div class="result error">
+              <p>❌ Erreur HTTP ${response.status}</p>
+              <pre>${errorText}</pre>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('❌ Exception:', error);
+        result.innerHTML = `<div class="result error">❌ Erreur: ${error.message}</div>`;
+      }
+    }
+
+    async function fillSelects() {
+      const result = document.getElementById('selectsResult');
+      result.innerHTML = '<p>⏳ Remplissage des listes...</p>';
+      
+      const token = currentToken || localStorage.getItem('token');
+      
+      if (!token) {
+        result.innerHTML = '<div class="result error">❌ Vous devez d\'abord vous connecter !</div>';
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/agences`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const agences = await response.json();
+          console.log('📦 Agences pour selects:', agences);
+          
+          // L'API peut renvoyer directement le tableau ou {data: [...]}
+          const data = agences.data || agences;
+          
+          const bureauSource = document.getElementById('bureauSource');
+          const bureauDest = document.getElementById('bureauDest');
+          
+          bureauSource.innerHTML = '<option value="">Sélectionner le bureau source</option>';
+          bureauDest.innerHTML = '<option value="">Sélectionner un bureau</option>';
+          
+          if (Array.isArray(data)) {
+            data.forEach(agence => {
+              const optSource = document.createElement('option');
+              optSource.value = agence._id;
+              optSource.textContent = `${agence.nom} (${agence.wilayaText || agence.wilaya})`;
+              bureauSource.appendChild(optSource);
+              
+              const optDest = document.createElement('option');
+              optDest.value = agence._id;
+              optDest.textContent = `${agence.nom} (${agence.wilayaText || agence.wilaya})`;
+              bureauDest.appendChild(optDest);
+            });
+            
+            result.innerHTML = `
+              <div class="result success">
+                <p>✅ ${data.length} agences ajoutées aux listes !</p>
+                <p>Bureau Source: ${bureauSource.options.length - 1} options</p>
+                <p>Bureau Dest: ${bureauDest.options.length - 1} options</p>
+              </div>
+            `;
+          } else {
+            result.innerHTML = `<div class="result error">❌ Les données ne sont pas un tableau</div>`;
+          }
+        } else {
+          const errorText = await response.text();
+          result.innerHTML = `<div class="result error">❌ Erreur: ${errorText}</div>`;
+        }
+      } catch (error) {
+        result.innerHTML = `<div class="result error">❌ Erreur: ${error.message}</div>`;
+      }
+    }
+
+    // Auto-login si token existe
+    window.addEventListener('load', function() {
+      const token = localStorage.getItem('token');
+      if (token) {
+        currentToken = token;
+        document.getElementById('loginResult').innerHTML = `
+          <div class="result success">
+            <p>✅ Token trouvé dans localStorage</p>
+            <p>Cliquez sur "Charger les agences" pour tester</p>
+          </div>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>

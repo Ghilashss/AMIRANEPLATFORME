@@ -1,0 +1,219 @@
+/* ===== Styles pour la section Affectation (FreeDeLiv Style) ===== */
+.affectation-container {
+  padding: 20px;
+  background: #f8f9fa;
+}
+
+/* Stats Cards */
+.affectation-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.stats-card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: transform 0.2s;
+}
+
+.stats-card:hover {
+  transform: translateY(-3px);
+}
+
+.stats-card i {
+  font-size: 2.5rem;
+  margin-right: 20px;
+  opacity: 0.8;
+}
+
+.stats-card.success i { color: #28a745; }
+.stats-card.info i { color: #17a2b8; }
+.stats-card.warning i { color: #ffc107; }
+.stats-card.danger i { color: #dc3545; }
+
+.stats-info h3 {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin: 0;
+}
+
+.stats-info p {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #343a40;
+  margin: 5px 0 0;
+}
+
+/* Toolbar */
+.affectation-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.left-tools {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+  color: #495057;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.tool-btn i {
+  font-size: 16px;
+}
+
+.tool-btn.add { background: #28a745; color: white; }
+.tool-btn.assign { background: #007bff; color: white; }
+.tool-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+/* Liste des affectations */
+.affectation-list {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.affectation-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #dee2e6;
+  transition: background-color 0.2s;
+}
+
+.affectation-item:last-child {
+  border-bottom: none;
+}
+
+.affectation-item:hover {
+  background-color: #f8f9fa;
+}
+
+.affectation-status {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.affectation-status.assigned { background: #d4edda; color: #155724; }
+.affectation-status.pending { background: #fff3cd; color: #856404; }
+.affectation-container {
+    padding: 20px;
+}
+
+.affectation-header {
+    margin-bottom: 20px;
+}
+
+.affectation-grid {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 20px;
+}
+
+.livreurs-list {
+    background: var(--white);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.livreur-item {
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.livreur-item:hover {
+    background-color: #f8f9fa;
+}
+
+.livreur-item.selected {
+    background-color: var(--blue);
+    color: white;
+}
+
+.colis-grid {
+    background: var(--white);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.colis-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.colis-item:last-child {
+    border-bottom: none;
+}
+
+.colis-info h3 {
+    margin: 0;
+    font-size: 16px;
+    color: var(--black1);
+}
+
+.colis-info p {
+    margin: 5px 0 0;
+    color: var(--black2);
+    font-size: 14px;
+}
+
+.colis-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.drag-handle {
+    cursor: move;
+    color: var(--black2);
+}
+
+.colis-item.dragging {
+    opacity: 0.5;
+    background-color: #f8f9fa;
+}
+
+.drop-zone {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+    text-align: center;
+    color: var(--black2);
+}

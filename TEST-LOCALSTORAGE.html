@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test localStorage - Wilayas et Agences</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2196F3;
+            border-bottom: 3px solid #2196F3;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #4CAF50;
+            margin-top: 30px;
+        }
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background: #2196F3;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        button {
+            padding: 12px 25px;
+            margin: 10px 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .btn-create {
+            background: #4CAF50;
+            color: white;
+        }
+        .btn-clear {
+            background: #f44336;
+            color: white;
+        }
+        .btn-refresh {
+            background: #2196F3;
+            color: white;
+        }
+        .btn-create:hover {
+            background: #45a049;
+        }
+        .btn-clear:hover {
+            background: #da190b;
+        }
+        .btn-refresh:hover {
+            background: #0b7dda;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border: 1px solid #ddd;
+        }
+        .actions {
+            margin: 20px 0;
+            padding: 20px;
+            background: #e3f2fd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Test localStorage - Wilayas et Agences</h1>
+        
+        <div class="actions">
+            <button class="btn-refresh" onclick="checkLocalStorage()">🔄 Vérifier localStorage</button>
+            <button class="btn-create" onclick="createTestData()">➕ Créer Données Test</button>
+            <button class="btn-clear" onclick="clearLocalStorage()">🗑️ Effacer localStorage</button>
+        </div>
+
+        <div id="status"></div>
+
+        <h2>📊 Wilayas dans localStorage</h2>
+        <div id="wilayasContent"></div>
+
+        <h2>🏢 Agences dans localStorage</h2>
+        <div id="agencesContent"></div>
+
+        <h2>📦 Colis dans localStorage</h2>
+        <div id="colisContent"></div>
+
+        <h2>� Frais de Livraison dans localStorage</h2>
+        <div id="fraisContent"></div>
+
+        <h2>�💾 Contenu Brut localStorage</h2>
+        <pre id="rawContent"></pre>
+    </div>
+
+    <script>
+        function checkLocalStorage() {
+            console.log('🔍 Vérification du localStorage...');
+            
+            const wilayas = localStorage.getItem('wilayas');
+            const agences = localStorage.getItem('agences');
+            const colis = localStorage.getItem('colis');
+            
+            let statusHTML = '';
+            
+            // Vérifier wilayas
+            if (wilayas) {
+                const wilayasArray = JSON.parse(wilayas);
+                statusHTML += `<div class="status success">✅ ${wilayasArray.length} wilaya(s) trouvée(s)</div>`;
+                displayWilayas(wilayasArray);
+            } else {
+                statusHTML += `<div class="status error">❌ Aucune wilaya dans localStorage</div>`;
+                document.getElementById('wilayasContent').innerHTML = '<p style="color: red;">Aucune donnée</p>';
+            }
+            
+            // Vérifier agences
+            if (agences) {
+                const agencesArray = JSON.parse(agences);
+                statusHTML += `<div class="status success">✅ ${agencesArray.length} agence(s) trouvée(s)</div>`;
+                displayAgences(agencesArray);
+            } else {
+                statusHTML += `<div class="status error">❌ Aucune agence dans localStorage</div>`;
+                document.getElementById('agencesContent').innerHTML = '<p style="color: red;">Aucune donnée</p>';
+            }
+            
+            // Vérifier colis
+            if (colis) {
+                const colisArray = JSON.parse(colis);
+                statusHTML += `<div class="status success">✅ ${colisArray.length} colis trouvé(s)</div>`;
+                displayColis(colisArray);
+            } else {
+                statusHTML += `<div class="status warning">⚠️ Aucun colis dans localStorage</div>`;
+                document.getElementById('colisContent').innerHTML = '<p style="color: orange;">Aucune donnée</p>';
+            }
+            
+            // Vérifier FRAIS DE LIVRAISON
+            const fraisLivraison = localStorage.getItem('fraisLivraison');
+            if (fraisLivraison) {
+                const fraisArray = JSON.parse(fraisLivraison);
+                statusHTML += `<div class="status success">✅ ${fraisArray.length} frais de livraison trouvé(s)</div>`;
+                displayFraisLivraison(fraisArray);
+            } else {
+                statusHTML += `<div class="status error">❌ Aucun frais de livraison dans localStorage</div>`;
+                document.getElementById('fraisContent').innerHTML = '<p style="color: red;">Aucune donnée</p>';
+            }
+            
+            document.getElementById('status').innerHTML = statusHTML;
+            
+            // Afficher le contenu brut
+            const allData = {
+                wilayas: wilayas ? JSON.parse(wilayas) : null,
+                agences: agences ? JSON.parse(agences) : null,
+                colis: colis ? JSON.parse(colis) : null,
+                fraisLivraison: fraisLivraison ? JSON.parse(fraisLivraison) : null
+            };
+            document.getElementById('rawContent').textContent = JSON.stringify(allData, null, 2);
+        }
+
+        function displayWilayas(wilayas) {
+            let html = '<table><thead><tr><th>Code</th><th>Nom</th><th>Prix Stop Desk</th><th>Prix Domicile</th></tr></thead><tbody>';
+            wilayas.forEach(w => {
+                html += `<tr>
+                    <td>${w.code || 'N/A'}</td>
+                    <td>${w.nom || 'N/A'}</td>
+                    <td>${w.prixStopDesk || 'N/A'} DA</td>
+                    <td>${w.prixDomicile || 'N/A'} DA</td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('wilayasContent').innerHTML = html;
+        }
+
+        function displayAgences(agences) {
+            let html = '<table><thead><tr><th>Code</th><th>Nom</th><th>Wilaya</th><th>Téléphone</th><th>Adresse</th></tr></thead><tbody>';
+            agences.forEach(a => {
+                html += `<tr>
+                    <td>${a.code || 'N/A'}</td>
+                    <td>${a.nom || 'N/A'}</td>
+                    <td>${a.wilaya || 'N/A'}</td>
+                    <td>${a.telephone || 'N/A'}</td>
+                    <td>${a.adresse || 'N/A'}</td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('agencesContent').innerHTML = html;
+        }
+
+        function displayColis(colis) {
+            document.getElementById('colisContent').innerHTML = `<p style="color: green;">✅ ${colis.length} colis dans le localStorage</p>`;
+        }
+
+        function displayFraisLivraison(frais) {
+            let html = '<table><thead><tr><th>Départ</th><th>Arrivée</th><th>Domicile (Base)</th><th>Domicile (par Kg)</th><th>Bureau (Base)</th><th>Bureau (par Kg)</th></tr></thead><tbody>';
+            frais.forEach(f => {
+                html += `<tr>
+                    <td>${f.wilayaDepart || 'N/A'}</td>
+                    <td>${f.wilayaArrivee || 'N/A'}</td>
+                    <td>${f.baseDomicile || 'N/A'} DA</td>
+                    <td>${f.parKgDomicile || 'N/A'} DA</td>
+                    <td>${f.baseBureau || 'N/A'} DA</td>
+                    <td>${f.parKgBureau || 'N/A'} DA</td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('fraisContent').innerHTML = html;
+        }
+
+        function createTestData() {
+            console.log('➕ Création des données de test...');
+            
+            // Créer des wilayas de test
+            const testWilayas = [
+                { code: '16', nom: 'Alger', prixStopDesk: 500, prixDomicile: 700 },
+                { code: '31', nom: 'Oran', prixStopDesk: 600, prixDomicile: 800 },
+                { code: '25', nom: 'Constantine', prixStopDesk: 550, prixDomicile: 750 },
+                { code: '09', nom: 'Blida', prixStopDesk: 500, prixDomicile: 700 },
+                { code: '10', nom: 'Bouira', prixStopDesk: 550, prixDomicile: 750 }
+            ];
+            
+            // Créer des agences de test
+            const testAgences = [
+                { code: 'ALG01', nom: 'Agence Alger Centre', wilaya: 'Alger', telephone: '0550123456', adresse: 'Rue Didouche Mourad' },
+                { code: 'ALG02', nom: 'Agence Bab Ezzouar', wilaya: 'Alger', telephone: '0550123457', adresse: 'Bab Ezzouar' },
+                { code: 'ORA01', nom: 'Agence Oran Centre', wilaya: 'Oran', telephone: '0550234567', adresse: 'Boulevard Zabana' },
+                { code: 'CST01', nom: 'Agence Constantine', wilaya: 'Constantine', telephone: '0550345678', adresse: 'Place 1er Novembre' },
+                { code: 'BLD01', nom: 'Agence Blida', wilaya: 'Blida', telephone: '0550456789', adresse: 'Centre Ville' },
+                { code: 'BOU01', nom: 'Agence Bouira', wilaya: 'Bouira', telephone: '0550567890', adresse: 'Rue Principale' }
+            ];
+            
+            // Créer des FRAIS DE LIVRAISON (IMPORTANT pour le formulaire Agent!)
+            const testFraisLivraison = [
+                // Depuis Alger vers...
+                { wilayaDepart: '16', wilayaArrivee: '31', baseDomicile: 600, parKgDomicile: 100, baseBureau: 400, parKgBureau: 80 },
+                { wilayaDepart: '16', wilayaArrivee: '25', baseDomicile: 650, parKgDomicile: 110, baseBureau: 450, parKgBureau: 90 },
+                { wilayaDepart: '16', wilayaArrivee: '09', baseDomicile: 500, parKgDomicile: 80, baseBureau: 350, parKgBureau: 60 },
+                { wilayaDepart: '16', wilayaArrivee: '10', baseDomicile: 550, parKgDomicile: 90, baseBureau: 400, parKgBureau: 70 },
+                
+                // Depuis Oran vers...
+                { wilayaDepart: '31', wilayaArrivee: '16', baseDomicile: 600, parKgDomicile: 100, baseBureau: 400, parKgBureau: 80 },
+                { wilayaDepart: '31', wilayaArrivee: '25', baseDomicile: 700, parKgDomicile: 120, baseBureau: 500, parKgBureau: 100 },
+                { wilayaDepart: '31', wilayaArrivee: '09', baseDomicile: 650, parKgDomicile: 110, baseBureau: 450, parKgBureau: 90 },
+                { wilayaDepart: '31', wilayaArrivee: '10', baseDomicile: 680, parKgDomicile: 115, baseBureau: 480, parKgBureau: 95 }
+            ];
+            
+            // Sauvegarder dans localStorage
+            localStorage.setItem('wilayas', JSON.stringify(testWilayas));
+            localStorage.setItem('agences', JSON.stringify(testAgences));
+            localStorage.setItem('fraisLivraison', JSON.stringify(testFraisLivraison));
+            
+            alert('✅ Données de test créées avec succès !\n\n' + 
+                  `• ${testWilayas.length} wilayas\n` +
+                  `• ${testAgences.length} agences\n` +
+                  `• ${testFraisLivraison.length} frais de livraison`);
+            
+            checkLocalStorage();
+        }
+
+        function clearLocalStorage() {
+            if (confirm('⚠️ Êtes-vous sûr de vouloir effacer toutes les données du localStorage ?')) {
+                localStorage.removeItem('wilayas');
+                localStorage.removeItem('agences');
+                localStorage.removeItem('colis');
+                alert('🗑️ localStorage effacé !');
+                checkLocalStorage();
+            }
+        }
+
+        // Vérifier au chargement de la page
+        window.addEventListener('DOMContentLoaded', checkLocalStorage);
+    </script>
+</body>
+</html>

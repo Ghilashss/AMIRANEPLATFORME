@@ -1,0 +1,163 @@
+/* Boutons d'action standardisés - Style Wilaya */
+.actions {
+    text-align: center !important;
+    padding: 8px !important;
+    white-space: nowrap !important;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.btn-action {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid #e0e0e0 !important;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    min-width: 36px;
+    min-height: 36px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-action:active {
+    transform: scale(0.95);
+}
+
+.btn-action ion-icon,
+.btn-action i {
+    font-size: 1.3em;
+    pointer-events: none;
+    display: block;
+}
+
+/* Couleurs des boutons */
+.btn-action.view {
+    color: #4CAF50;
+}
+
+.btn-action.print {
+    color: #FF9800;
+}
+
+.btn-action.edit {
+    color: #2196F3;
+}
+
+.btn-action.delete {
+    color: #F44336;
+}
+
+/* Effets hover */
+.btn-action:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.btn-action.view:hover {
+    background-color: rgba(76, 175, 80, 0.1) !important;
+    border-color: #4CAF50 !important;
+}
+
+.btn-action.print:hover {
+    background-color: rgba(255, 152, 0, 0.1) !important;
+    border-color: #FF9800 !important;
+}
+
+.btn-action.edit:hover {
+    background-color: rgba(33, 150, 243, 0.1) !important;
+    border-color: #2196F3 !important;
+}
+
+.btn-action.delete:hover {
+    background-color: rgba(244, 67, 54, 0.1) !important;
+    border-color: #F44336 !important;
+}
+
+/* Centrage de la colonne Actions */
+td.actions, th.text-center, td.text-center {
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+/* Compatibilité avec action-btn */
+.action-btn {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid #e0e0e0 !important;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    min-width: 36px;
+    min-height: 36px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 0 4px;
+    vertical-align: middle;
+}
+
+.action-btn:active {
+    transform: scale(0.95);
+}
+
+.action-btn ion-icon,
+.action-btn i {
+    font-size: 1.3em;
+    pointer-events: none;
+    display: block;
+}
+
+.action-btn.view {
+    color: #4CAF50;
+}
+
+.action-btn.print {
+    color: #FF9800;
+}
+
+.action-btn.edit {
+    color: #2196F3;
+}
+
+.action-btn.delete {
+    color: #F44336;
+}
+
+.action-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.action-btn.view:hover {
+    background-color: rgba(76, 175, 80, 0.1) !important;
+    border-color: #4CAF50 !important;
+    color: #1e7e34;
+}
+
+.action-btn.print:hover {
+    background-color: rgba(255, 152, 0, 0.1) !important;
+    border-color: #FF9800 !important;
+    color: #E68900;
+}
+
+.action-btn.edit:hover {
+    background-color: rgba(33, 150, 243, 0.1) !important;
+    border-color: #2196F3 !important;
+    color: #0056b3;
+}
+
+.action-btn.delete:hover {
+    background-color: rgba(244, 67, 54, 0.1) !important;
+    border-color: #F44336 !important;
+    color: #c82333;
+}

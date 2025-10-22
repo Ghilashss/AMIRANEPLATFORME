@@ -1,0 +1,53 @@
+.form-group {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.form-group .error-message {
+    display: none;
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    position: absolute;
+    bottom: -20px;
+    left: 0;
+}
+
+.form-group input.invalid {
+    border-color: #dc3545;
+    background-color: #fff;
+}
+
+.form-group input.invalid + .error-message {
+    display: block;
+}
+
+.form-group input.valid {
+    border-color: #28a745;
+    background-color: #fff;
+}
+
+.required-field::after {
+    content: '*';
+    color: #dc3545;
+    margin-left: 4px;
+}
+
+.validate-input:invalid {
+    border-color: #dc3545 !important;
+}
+
+.validate-input:valid {
+    border-color: #28a745 !important;
+}
+
+/* Animation pour le message d'erreur */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+.error-shake {
+    animation: shake 0.5s ease-in-out;
+}

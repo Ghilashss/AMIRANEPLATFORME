@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>🔍 Debug Token</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1e1e1e;
+      color: #00ff00;
+    }
+    .section {
+      background: #2d2d2d;
+      padding: 20px;
+      margin: 15px 0;
+      border-radius: 8px;
+      border-left: 4px solid #00ff00;
+    }
+    h2 { color: #00ffff; margin-top: 0; }
+    .token { 
+      background: #000;
+      padding: 10px;
+      margin: 10px 0;
+      word-break: break-all;
+      border: 1px solid #00ff00;
+    }
+    .error { color: #ff0000; }
+    .success { color: #00ff00; }
+    button {
+      background: #00ff00;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 4px;
+    }
+    button:hover { background: #00ffff; }
+  </style>
+</head>
+<body>
+  <h1>🔍 DEBUG - Tokens de Session</h1>
+  
+  <div class="section">
+    <h2>📦 sessionStorage</h2>
+    <div id="session-storage"></div>
+  </div>
+
+  <div class="section">
+    <h2>💾 localStorage</h2>
+    <div id="local-storage"></div>
+  </div>
+
+  <div class="section">
+    <h2>🎯 Test getAdminToken()</h2>
+    <button onclick="testGetAdminToken()">Tester getAdminToken()</button>
+    <div id="test-result"></div>
+  </div>
+
+  <div class="section">
+    <h2>🚀 Actions</h2>
+    <button onclick="window.location.href='/login.html?role=admin'">🔐 Se Connecter</button>
+    <button onclick="window.location.href='/dashboards/admin/admin-dashboard.html'">📊 Dashboard Admin</button>
+    <button onclick="clearAll()">🗑️ Tout Effacer</button>
+    <button onclick="location.reload()">🔄 Rafraîchir</button>
+  </div>
+
+  <script>
+    function displayStorage() {
+      // sessionStorage
+      const sessionDiv = document.getElementById('session-storage');
+      const sessionKeys = Object.keys(sessionStorage);
+      
+      if (sessionKeys.length === 0) {
+        sessionDiv.innerHTML = '<div class="error">❌ Vide</div>';
+      } else {
+        let html = '';
+        sessionKeys.forEach(key => {
+          const value = sessionStorage.getItem(key);
+          html += `<div><strong>${key}:</strong><div class="token">${value.substr(0, 100)}${value.length > 100 ? '...' : ''}</div></div>`;
+        });
+        sessionDiv.innerHTML = html;
+      }
+
+      // localStorage
+      const localDiv = document.getElementById('local-storage');
+      const localKeys = Object.keys(localStorage);
+      
+      if (localKeys.length === 0) {
+        localDiv.innerHTML = '<div class="error">❌ Vide</div>';
+      } else {
+        let html = '';
+        localKeys.forEach(key => {
+          const value = localStorage.getItem(key);
+          const display = value.length > 100 ? value.substr(0, 100) + '...' : value;
+          html += `<div><strong>${key}:</strong><div class="token">${display}</div></div>`;
+        });
+        localDiv.innerHTML = html;
+      }
+    }
+
+    function testGetAdminToken() {
+      const resultDiv = document.getElementById('test-result');
+      
+      console.log('🧪 TEST getAdminToken()');
+      
+      // Simuler le code de data-store.js
+      let token = sessionStorage.getItem('auth_token');
+      console.log('1️⃣ sessionStorage.auth_token:', token ? 'TROUVÉ ✅' : 'NON TROUVÉ ❌');
+      
+      if (!token) {
+        token = localStorage.getItem('admin_token');
+        console.log('2️⃣ localStorage.admin_token:', token ? 'TROUVÉ ✅' : 'NON TROUVÉ ❌');
+      }
+      
+      if (!token) {
+        resultDiv.innerHTML = `
+          <div class="error">
+            ❌ <strong>AUCUN TOKEN TROUVÉ</strong><br><br>
+            📋 Vérification:<br>
+            • sessionStorage.auth_token: NON ❌<br>
+            • localStorage.admin_token: NON ❌<br><br>
+            💡 Solution: <a href="/login.html?role=admin" style="color: #00ffff;">Connectez-vous</a>
+          </div>
+        `;
+      } else {
+        resultDiv.innerHTML = `
+          <div class="success">
+            ✅ <strong>TOKEN TROUVÉ !</strong><br><br>
+            <div class="token">${token.substr(0, 50)}...</div>
+            <br>
+            🎉 La connexion devrait fonctionner !
+          </div>
+        `;
+      }
+    }
+
+    function clearAll() {
+      if (confirm('⚠️ Supprimer tous les tokens ?')) {
+        sessionStorage.clear();
+        localStorage.clear();
+        alert('✅ Tous les tokens supprimés');
+        displayStorage();
+      }
+    }
+
+    // Auto-refresh au chargement
+    window.addEventListener('DOMContentLoaded', () => {
+      displayStorage();
+      testGetAdminToken();
+    });
+  </script>
+</body>
+</html>

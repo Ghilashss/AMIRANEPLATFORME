@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migration Agences vers MongoDB</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .info-box {
+            background: #f0f7ff;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+        
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .info-box p {
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        .status-box {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 300px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        .log-entry.info {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .log-entry.success {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+        
+        .log-entry.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .log-entry.warning {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .btn-migrate {
+            width: 100%;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-migrate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .btn-migrate:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-card h4 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏢 Migration des Agences</h1>
+        <p class="subtitle">localStorage → MongoDB</p>
+        
+        <div class="info-box">
+            <h3>ℹ️ À propos de cette migration</h3>
+            <p>
+                Cette page va migrer toutes les agences stockées dans localStorage vers la base de données MongoDB.
+                Vos 13 agences seront transférées vers l'API backend et seront persistantes.
+            </p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <h4>LocalStorage</h4>
+                <div class="number" id="localCount">0</div>
+            </div>
+            <div class="stat-card">
+                <h4>Migrées</h4>
+                <div class="number" id="migratedCount">0</div>
+            </div>
+            <div class="stat-card">
+                <h4>Erreurs</h4>
+                <div class="number" id="errorCount">0</div>
+            </div>
+        </div>
+        
+        <div class="status-box" id="logBox">
+            <div class="log-entry info">📋 En attente du démarrage de la migration...</div>
+        </div>
+        
+        <button class="btn-migrate" id="migrateBtn" onclick="startMigration()">
+            🚀 Démarrer la Migration
+        </button>
+    </div>
+    
+    <script>
+        function addLog(message, type = 'info') {
+            const logBox = document.getElementById('logBox');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logBox.appendChild(entry);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+        
+        async function startMigration() {
+            const btn = document.getElementById('migrateBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Migration en cours...';
+            
+            document.getElementById('logBox').innerHTML = '';
+            addLog('🚀 Démarrage de la migration des agences...', 'info');
+            
+            try {
+                // 1. Récupérer les agences depuis localStorage
+                const agencesStr = localStorage.getItem('agences');
+                if (!agencesStr) {
+                    addLog('❌ Aucune agence trouvée dans localStorage', 'error');
+                    btn.disabled = false;
+                    btn.textContent = '🔄 Réessayer';
+                    return;
+                }
+                
+                const agences = JSON.parse(agencesStr);
+                document.getElementById('localCount').textContent = agences.length;
+                addLog(`✅ ${agences.length} agences trouvées dans localStorage`, 'success');
+                
+                // 2. Vérifier le token
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    addLog('❌ Pas de token. Veuillez vous connecter d\'abord.', 'error');
+                    btn.disabled = false;
+                    btn.textContent = '🔄 Réessayer';
+                    return;
+                }
+                
+                addLog('✅ Token d\'authentification trouvé', 'success');
+                
+                // 3. Migrer chaque agence
+                let migrated = 0;
+                let errors = 0;
+                
+                for (const agence of agences) {
+                    try {
+                        addLog(`📤 Migration de "${agence.nom}" (${agence.code})...`, 'info');
+                        
+                        const response = await fetch('http://localhost:1000/api/agences', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                nom: agence.nom,
+                                wilaya: agence.wilaya,
+                                email: agence.email || `${agence.code.toLowerCase()}@agence.dz`,
+                                password: agence.password || '123456',
+                                telephone: agence.telephone || '-',
+                                adresse: agence.adresse || '-',
+                                wilayaText: agence.wilayaText,
+                                status: 'active'
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            const result = await response.json();
+                            migrated++;
+                            document.getElementById('migratedCount').textContent = migrated;
+                            addLog(`✅ "${agence.nom}" migrée avec succès`, 'success');
+                        } else {
+                            const error = await response.json();
+                            if (error.message && error.message.includes('déjà utilisé')) {
+                                addLog(`⚠️ "${agence.nom}" existe déjà dans MongoDB`, 'warning');
+                                migrated++; // Compter comme migrée
+                                document.getElementById('migratedCount').textContent = migrated;
+                            } else {
+                                errors++;
+                                document.getElementById('errorCount').textContent = errors;
+                                addLog(`❌ Erreur pour "${agence.nom}": ${error.message}`, 'error');
+                            }
+                        }
+                        
+                        // Petit délai pour éviter de surcharger l'API
+                        await new Promise(resolve => setTimeout(resolve, 200));
+                        
+                    } catch (err) {
+                        errors++;
+                        document.getElementById('errorCount').textContent = errors;
+                        addLog(`❌ Erreur pour "${agence.nom}": ${err.message}`, 'error');
+                    }
+                }
+                
+                // 4. Résumé final
+                addLog('', 'info');
+                addLog('═══════════════════════════════════════', 'info');
+                addLog('🎉 MIGRATION TERMINÉE !', 'success');
+                addLog(`✅ ${migrated} agences migrées`, 'success');
+                addLog(`❌ ${errors} erreurs`, errors > 0 ? 'error' : 'success');
+                addLog('═══════════════════════════════════════', 'info');
+                
+                if (errors === 0) {
+                    addLog('', 'info');
+                    addLog('💡 Conseil: Rechargez la page des agences pour voir les données depuis MongoDB', 'info');
+                }
+                
+                btn.textContent = '✅ Migration Terminée';
+                
+            } catch (error) {
+                addLog(`❌ Erreur fatale: ${error.message}`, 'error');
+                btn.disabled = false;
+                btn.textContent = '🔄 Réessayer';
+            }
+        }
+        
+        // Charger le compteur au chargement de la page
+        window.addEventListener('load', () => {
+            const agencesStr = localStorage.getItem('agences');
+            if (agencesStr) {
+                const agences = JSON.parse(agencesStr);
+                document.getElementById('localCount').textContent = agences.length;
+                addLog(`📊 ${agences.length} agences détectées dans localStorage`, 'info');
+            } else {
+                addLog('⚠️ Aucune agence trouvée dans localStorage', 'warning');
+            }
+        });
+    </script>
+</body>
+</html>

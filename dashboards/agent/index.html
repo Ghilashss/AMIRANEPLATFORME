@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="0;url=/login.html?role=agent">
+    <title>Redirection...</title>
+</head>
+<body>
+    <script>
+        // Vérifier si l'utilisateur est déjà connecté
+        const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+        const user = sessionStorage.getItem('user') || localStorage.getItem('user');
+        
+        if (token && user) {
+            try {
+                const userData = JSON.parse(user);
+                // Si connecté en tant qu'agent, aller au dashboard
+                if (userData.role === 'agent') {
+                    window.location.href = 'agent-dashboard.html';
+                } else {
+                    // Sinon, rediriger vers login
+                    window.location.href = '/login.html?role=agent';
+                }
+            } catch (error) {
+                // Erreur de parsing, rediriger vers login
+                window.location.href = '/login.html?role=agent';
+            }
+        } else {
+            // Pas de token, rediriger vers login
+            window.location.href = '/login.html?role=agent';
+        }
+    </script>
+    <p>Vérification de l'authentification...</p>
+</body>
+</html>

@@ -1,0 +1,344 @@
+<!-- ======================================
+     FORMULAIRE COLIS COMPLET V2
+     Design: Vert (#0b2b24, #16a34a)
+     Responsive: 2 colonnes → 1 colonne mobile
+     ====================================== -->
+<div id="colisModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2><i class="fas fa-box"></i> Ajouter un Colis</h2>
+      <span class="close-button">&times;</span>
+    </div>
+    <div class="modal-body">
+      <form id="colisForm" class="param-form">
+        <div class="form-columns">
+          <!-- ============ COLONNE GAUCHE : EXPÉDITEUR ============ -->
+          <div class="form-column-left">
+            
+            <!-- Section 1: Informations Expéditeur -->
+            <div class="form-section">
+              <h3 class="form-section-title">
+                <i class="fas fa-user-tie"></i> Informations Expéditeur
+              </h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="nomExpediteur">
+                    <i class="fas fa-user"></i> Nom expéditeur <span class="required">*</span>
+                  </label>
+                  <input type="text" 
+                         id="nomExpediteur" 
+                         name="nomExpediteur" 
+                         placeholder="Nom complet de l'expéditeur" 
+                         required>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="telExpediteur">
+                    <i class="fas fa-phone"></i> Téléphone expéditeur <span class="required">*</span>
+                  </label>
+                  <input type="tel" 
+                         id="telExpediteur" 
+                         name="telExpediteur" 
+                         placeholder="0X XX XX XX XX" 
+                         pattern="[0-9]{10}"
+                         required>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 2: Localisation Expéditeur -->
+            <div class="form-section">
+              <h3 class="form-section-title">
+                <i class="fas fa-map-marker-alt"></i> Localisation Expéditeur
+              </h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="wilayaSource">
+                    <i class="fas fa-map"></i> Wilaya expéditeur <span class="required">*</span>
+                  </label>
+                  <select id="wilayaSource" name="wilayaSource" required data-role-dependent="true">
+                    <option value="">Sélectionner une wilaya</option>
+                    <!-- Chargé dynamiquement depuis API frais-livraison -->
+                  </select>
+                  <small class="form-hint" data-role="agent,commercant" style="display: none;">
+                    <i class="fas fa-info-circle"></i> Auto-rempli selon votre agence
+                  </small>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="bureauSource">
+                    <i class="fas fa-building"></i> Bureau expéditeur <span class="required">*</span>
+                  </label>
+                  <select id="bureauSource" name="bureauSource" required data-role-dependent="true">
+                    <option value="">Sélectionner le bureau source</option>
+                    <!-- Chargé dynamiquement selon wilaya sélectionnée -->
+                  </select>
+                  <small class="form-hint" data-role="agent,commercant" style="display: none;">
+                    <i class="fas fa-info-circle"></i> Auto-rempli selon votre agence
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 3: Détails du Colis -->
+            <div class="form-section">
+              <h3 class="form-section-title">
+                <i class="fas fa-box-open"></i> Détails du Colis
+              </h3>
+              <div class="form-row form-row-2cols">
+                <div class="form-group">
+                  <label for="poidsColis">
+                    <i class="fas fa-weight-hanging"></i> Poids (kg) <span class="required">*</span>
+                  </label>
+                  <input type="number" 
+                         id="poidsColis" 
+                         name="poidsColis" 
+                         step="0.1" 
+                         min="0.1"
+                         placeholder="Ex: 2.5"
+                         required>
+                </div>
+                <div class="form-group">
+                  <label for="prixColis">
+                    <i class="fas fa-coins"></i> Prix du colis (DA) <span class="required">*</span>
+                  </label>
+                  <input type="number" 
+                         id="prixColis" 
+                         name="prixColis" 
+                         min="0"
+                         placeholder="Ex: 5000"
+                         required>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="typeColis">
+                    <i class="fas fa-tag"></i> Type de colis <span class="required">*</span>
+                  </label>
+                  <select id="typeColis" name="typeColis" required>
+                    <option value="">Sélectionner le type</option>
+                    <option value="standard">📦 Standard</option>
+                    <option value="fragile">⚠️ Fragile</option>
+                    <option value="perissable">🧊 Périssable</option>
+                    <option value="electronique">💻 Électronique</option>
+                    <option value="documents">📄 Documents</option>
+                    <option value="autre">📌 Autre</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="contenuColis">
+                    <i class="fas fa-cube"></i> Contenu du colis <span class="required">*</span>
+                  </label>
+                  <input type="text" 
+                         id="contenuColis" 
+                         name="contenuColis" 
+                         placeholder="Ex: Vêtements, Chaussures, Livres..."
+                         required>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="description">
+                    <i class="fas fa-align-left"></i> Description détaillée
+                  </label>
+                  <textarea id="description" 
+                            name="description" 
+                            rows="3" 
+                            placeholder="Ajoutez des détails supplémentaires sur le colis..."></textarea>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ============ COLONNE DROITE : DESTINATAIRE ============ -->
+          <div class="form-column-right">
+            
+            <!-- Section 4: Informations Destinataire -->
+            <div class="form-section">
+              <h3 class="form-section-title">
+                <i class="fas fa-user-check"></i> Informations Destinataire
+              </h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="nomClient">
+                    <i class="fas fa-user-circle"></i> Nom complet <span class="required">*</span>
+                  </label>
+                  <input type="text" 
+                         id="nomClient" 
+                         name="nomClient" 
+                         placeholder="Nom du destinataire"
+                         required>
+                </div>
+              </div>
+              <div class="form-row form-row-2cols">
+                <div class="form-group">
+                  <label for="telClient">
+                    <i class="fas fa-phone"></i> Téléphone <span class="required">*</span>
+                  </label>
+                  <input type="tel" 
+                         id="telClient" 
+                         name="telClient" 
+                         placeholder="0X XX XX XX XX"
+                         pattern="[0-9]{10}"
+                         required>
+                </div>
+                <div class="form-group">
+                  <label for="telSecondaire">
+                    <i class="fas fa-phone-square"></i> Tél. secondaire
+                  </label>
+                  <input type="tel" 
+                         id="telSecondaire" 
+                         name="telSecondaire" 
+                         placeholder="0X XX XX XX XX"
+                         pattern="[0-9]{10}">
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 5: Localisation Destinataire -->
+            <div class="form-section">
+              <h3 class="form-section-title">
+                <i class="fas fa-shipping-fast"></i> Localisation Destinataire
+              </h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="wilayaDest">
+                    <i class="fas fa-map"></i> Wilaya destination <span class="required">*</span>
+                  </label>
+                  <select id="wilayaDest" name="wilayaDest" required>
+                    <option value="">Sélectionner une wilaya</option>
+                    <!-- Chargé dynamiquement depuis API frais-livraison -->
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="typelivraison">
+                    <i class="fas fa-truck"></i> Type de livraison <span class="required">*</span>
+                  </label>
+                  <select id="typelivraison" name="typelivraison" required>
+                    <option value="">Sélectionner le type</option>
+                    <option value="bureau">🏢 Livraison au bureau</option>
+                    <option value="domicile">🏠 Livraison à domicile</option>
+                  </select>
+                </div>
+              </div>
+              
+              <!-- Champ conditionnel: Bureau Destination (si type = bureau) -->
+              <div class="form-row" id="bureauDestRow" style="display: none;">
+                <div class="form-group">
+                  <label for="bureauDest">
+                    <i class="fas fa-building"></i> Bureau destination <span class="required">*</span>
+                  </label>
+                  <select id="bureauDest" name="bureauDest">
+                    <option value="">Sélectionner un bureau</option>
+                    <!-- Chargé dynamiquement selon wilaya destinataire -->
+                  </select>
+                </div>
+              </div>
+
+              <!-- Champ conditionnel: Adresse (si type = domicile) -->
+              <div class="form-row" id="adresseDomicileRow" style="display: none;">
+                <div class="form-group">
+                  <label for="adresseLivraison">
+                    <i class="fas fa-home"></i> Adresse de livraison <span class="required">*</span>
+                  </label>
+                  <textarea id="adresseLivraison" 
+                            name="adresseLivraison" 
+                            rows="2" 
+                            placeholder="Adresse complète avec détails (rue, quartier, points de repère...)"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 6: Résumé des Frais -->
+            <div class="form-section frais-section">
+              <h3 class="form-section-title">
+                <i class="fas fa-calculator"></i> Résumé des Frais
+              </h3>
+              <div class="frais-details">
+                <div class="frais-row">
+                  <span class="frais-label">
+                    <i class="fas fa-box"></i> Prix du colis
+                  </span>
+                  <span id="resumePrixColis" class="frais-value">0 DA</span>
+                </div>
+                <div class="frais-row">
+                  <span class="frais-label">
+                    <i class="fas fa-truck"></i> Frais de livraison
+                  </span>
+                  <span id="fraisLivraison" class="frais-value">0 DA</span>
+                </div>
+                <div class="frais-separator"></div>
+                <div class="frais-row frais-total">
+                  <span class="frais-label">
+                    <i class="fas fa-money-bill-wave"></i> Total à payer
+                  </span>
+                  <span id="totalAPayer" class="frais-value total">0 DA</span>
+                </div>
+              </div>
+              <div class="frais-info">
+                <i class="fas fa-info-circle"></i>
+                <small>Les frais sont calculés automatiquement selon la configuration tarifaire</small>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Footer avec bouton de soumission -->
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="cancelColisBtn">
+            <i class="fas fa-times"></i> Annuler
+          </button>
+          <button type="submit" class="btn-primary">
+            <i class="fas fa-check"></i> Créer le colis
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================
+     NOTES D'IMPLÉMENTATION
+     ======================================
+     
+     1. CHAMPS AUTO-REMPLIS (Agent/Commerçant):
+        - wilayaSource: disabled + value from user.agence.wilaya
+        - bureauSource: disabled + value from user.agence._id
+     
+     2. AFFICHAGE CONDITIONNEL:
+        - bureauDestRow: visible si typelivraison = "bureau"
+        - adresseDomicileRow: visible si typelivraison = "domicile"
+     
+     3. CALCUL FRAIS:
+        Déclenché lors de:
+        - Changement de wilayaDest
+        - Changement de typelivraison
+        - Changement de poidsColis
+        
+        Formule:
+        - Si poids ≤ tarifBase.poidsMax: frais = tarifBase.montant
+        - Si poids > tarifBase.poidsMax: frais = tarifBase.montant + (poids - tarifBase.poidsMax) × tarifParKg
+     
+     4. VALIDATION:
+        - Tous les champs avec * sont required
+        - Téléphone: 10 chiffres
+        - Poids > 0
+        - Prix >= 0
+        - Si bureau: bureauDest required
+        - Si domicile: adresseLivraison required
+     
+     5. APIs UTILISÉES:
+        - GET /api/frais-livraison → Liste wilayas + tarifs
+        - GET /api/agences?wilaya=CODE → Bureaux filtrés
+        - GET /api/auth/me → Info utilisateur (agence)
+        - POST /api/colis → Création colis
+     
+-->

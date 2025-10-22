@@ -1,0 +1,3062 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <!-- Font Awesome CDN pour les icônes visibles -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- html5-qrcode pour scan QR/barcode -->
+      <!-- Configuration API (OBLIGATOIRE EN PREMIER) -->
+    <script src="/dashboards/config.js"></script>
+
+    <script src="https://unpkg.com/html5-qrcode@2.3.10/html5-qrcode.min.js"></script>
+  <!-- QRCode.js pour génération de QR code -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <!-- JsBarcode pour génération de code-barres -->
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard Agent</title>
+  <link rel="stylesheet" href="./css/dashboard.css" />
+  <link rel="stylesheet" href="./css/new-dashboard.css" />
+  <link rel="stylesheet" href="./css/action-buttons.css" />
+  <link rel="stylesheet" href="./css/colis.css" />
+  <link rel="stylesheet" href="./css/expediteur.css" />
+  <link rel="stylesheet" href="./css/reception.css" />
+  <link rel="stylesheet" href="./css/transfert.css" />
+  <link rel="stylesheet" href="./css/contact.css" />
+  <link rel="stylesheet" href="./css/livraison.css" />
+  <link rel="stylesheet" href="./css/affectation.css" />
+  <link rel="stylesheet" href="./css/ticket.css" />
+  <link rel="stylesheet" href="./css/commercant.css" />
+  <link rel="stylesheet" href="./css/paiement.css" />
+  <link rel="stylesheet" href="./css/retour.css" />
+  <link rel="stylesheet" href="./css/retours.css" />
+  <link rel="stylesheet" href="./css/livraisons.css" />
+  <link rel="stylesheet" href="./css/reclamation.css" />
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+  <style>
+    /* 🟠 FIX BOUTON WARNING - AU CENTRE DE TRI */
+    .action-btn.warning {
+      color: #FF9800 !important;
+      background: rgba(255, 255, 255, 0.9) !important;
+      border: 1px solid #e0e0e0 !important;
+    }
+    
+    .action-btn.warning ion-icon {
+      color: #FF9800 !important;
+    }
+    
+    .action-btn.warning:hover {
+      background-color: rgba(255, 152, 0, 0.1) !important;
+      border-color: #FF9800 !important;
+      color: #E68900 !important;
+    }
+    
+    .action-btn.warning:hover ion-icon {
+      color: #E68900 !important;
+    }
+    
+    /* 🎨 STYLES FORMULAIRE COLIS - Design Commerçant Vert */
+    .modal-footer {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #E0E0E0;
+      text-align: right;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0b2b24 0%, #16a34a 100%);
+      color: white;
+      padding: 14px 28px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 6px rgba(11, 43, 36, 0.2);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0a241f 0%, #15803d 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(11, 43, 36, 0.3);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(11, 43, 36, 0.2);
+    }
+
+    /* Animation pour les transitions */
+    .form-section {
+      animation: fadeInUp 0.5s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .form-columns {
+        grid-template-columns: 1fr;
+      }
+      
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .param-form textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      resize: vertical;
+    }
+
+    .montant {
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+      margin: 5px 0;
+    }
+
+    .total-row {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 2px solid #eee;
+    }
+
+    .total {
+      color: #2196F3;
+      font-size: 18px;
+    }
+
+    /* Styles pour les modales */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      width: 80%;
+      max-width: 600px;
+      position: relative;
+    }
+
+    .close-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 24px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: #666;
+    }
+
+    /* Styles pour les boutons */
+    .tool-btn {
+      padding: 8px 16px;
+      margin: 4px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .tool-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    /* Styles pour le champ de scan */
+    .scan-input-container {
+      display: flex;
+      align-items: center;
+      background-color: #4CAF50;
+      padding: 8px 12px;
+      border-radius: 4px;
+      margin: 4px;
+      transition: all 0.3s ease;
+    }
+
+    .scan-input-container i {
+      color: white;
+      margin-right: 8px;
+    }
+
+    .scan-input {
+      background: transparent;
+      border: none;
+      color: white;
+      outline: none;
+      width: 180px;
+      font-size: 14px;
+      padding: 4px;
+    }
+
+    .scan-input::placeholder {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .scan-input:focus {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+    }
+
+    .scan-input.scanning {
+      background: rgba(255, 255, 255, 0.2);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+      }
+      70% {
+        box-shadow: 0 0 0 6px rgba(255, 255, 255, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+      }
+    }
+
+    .tool-btn.add {
+      background-color: #2196F3;
+      color: white;
+    }
+
+    /* Zone de scan */
+    .scan-zone {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.9);
+      z-index: 2000;
+    }
+
+    .scan-container {
+      position: relative;
+      width: 90%;
+      max-width: 600px;
+      margin: 50px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    /* 🔧 FIX: Affichage correct des sections Retours et Livraison */
+    #retours.active,
+    #livraison-clients.active {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      position: relative !important;
+      min-height: 400px;
+      background: #fff;
+    }
+
+    #retours .colis-container,
+    #livraison-clients .colis-container {
+      display: block !important;
+      width: 100%;
+    }
+
+    /* 📦 Conteneur Colis - Empêcher le débordement */
+    .colis-container {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden; /* Empêche le débordement horizontal */
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    /* Section Page - Contraindre la largeur */
+    .page {
+      display: none; /* ✅ Cacher toutes les sections par défaut */
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      box-sizing: border-box;
+    }
+
+    /* Section active visible */
+    .page.active {
+      display: block; /* ✅ Afficher seulement la section active */
+    }
+
+    /* Main container - Assurer le bon dimensionnement */
+    .main {
+      width: 100%;
+      overflow-x: hidden;
+    }
+
+    /* ✨ STYLES BADGES STATUTS COLIS ✨ */
+    .colis-status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+
+    .colis-status-badge:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+
+    /* Animation pour les badges */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+
+    .status-en-attente {
+      animation: pulse 2s infinite;
+    }
+
+    .status-en-livraison,
+    .status-transit {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .status-en-livraison::before,
+    .status-transit::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      animation: slide 2s infinite;
+    }
+
+    @keyframes slide {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+
+    /* Effet pour statut livré */
+    .status-livre {
+      position: relative;
+    }
+
+    .status-livre::after {
+      content: '✓';
+      position: absolute;
+      right: 8px;
+      font-weight: bold;
+      animation: checkmark 0.5s ease;
+    }
+
+    @keyframes checkmark {
+      0% { opacity: 0; transform: scale(0); }
+      50% { transform: scale(1.2); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* Responsivité */
+    @media (max-width: 768px) {
+      .colis-status-badge {
+        font-size: 11px;
+        padding: 4px 10px;
+      }
+    }
+
+    /* ✨ STYLES BOUTONS D'ACTION DANS LE TABLEAU ✨ */
+    td.actions {
+      white-space: nowrap;
+      text-align: center;
+      padding: 12px 8px !important;
+    }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      margin: 0 4px;
+      padding: 0;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+      font-size: 0;
+    }
+
+    .action-btn ion-icon {
+      font-size: 24px;
+      color: white;
+      pointer-events: none;
+    }
+
+    .action-btn.view {
+      background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    }
+
+    .action-btn.view:hover {
+      background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+    }
+
+    .action-btn.print {
+      background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
+    }
+
+    .action-btn.print:hover {
+      background: linear-gradient(135deg, #7B1FA2 0%, #6A1B9A 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(156, 39, 176, 0.3);
+    }
+
+    .action-btn.success {
+      background: linear-gradient(135deg, #28a745 0%, #218838 100%) !important;
+    }
+
+    .action-btn.success:hover {
+      background: linear-gradient(135deg, #218838 0%, #1e7e34 100%) !important;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+    }
+
+    .action-btn.edit {
+      background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+    }
+
+    .action-btn.edit:hover {
+      background: linear-gradient(135deg, #F57C00 0%, #E65100 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(255, 152, 0, 0.3);
+    }
+
+    .action-btn.delete {
+      background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+    }
+
+    .action-btn.delete:hover {
+      background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
+    }
+
+    .action-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .action-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    /* ✨ STYLES DES CELLULES DU TABLEAU - SIMPLE ET PROFESSIONNEL ✨ */
+    
+    /* Numéro de tracking */
+    .tracking-number {
+      font-weight: 600;
+      font-size: 13px;
+      color: #2c3e50;
+    }
+    
+    /* Noms de personnes */
+    .person-name {
+      font-weight: 500;
+      color: #2c3e50;
+      font-size: 13px;
+    }
+    
+    /* Numéros de téléphone */
+    .phone-number {
+      color: #16a085;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    
+    /* Nom d'agence */
+    .agency-name {
+      color: #3498db;
+      font-size: 13px;
+      font-weight: 600;
+      background: #e3f2fd;
+      padding: 2px 8px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    
+    /* Tags wilaya */
+    .wilaya-tag {
+      color: #5b21b6;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    
+    /* Adresse */
+    .address-text {
+      color: #555;
+      font-size: 13px;
+    }
+    
+    /* Date */
+    .date-text {
+      color: #666;
+      font-size: 13px;
+    }
+    
+    /* Type de livraison avec icône */
+    .type-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    
+    .type-badge ion-icon {
+      font-size: 16px;
+    }
+    
+    .type-domicile {
+      color: #059669;
+    }
+    
+    .type-bureau {
+      color: #dc2626;
+    }
+    
+    /* Contenu */
+    .content-text {
+      color: #666;
+      font-size: 13px;
+    }
+    
+    /* Prix */
+    .price-amount {
+      font-weight: 600;
+      font-size: 13px;
+      color: #059669;
+    }
+    
+    /* Amélioration de la table */
+    .colis-table tbody tr {
+      transition: background-color 0.2s ease;
+    }
+    
+    .colis-table tbody tr:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .colis-table td {
+      vertical-align: middle;
+      padding: 12px 10px !important;
+      font-size: 13px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .tracking-number {
+        font-size: 11px;
+      }
+      
+      .person-name, .phone-number {
+        font-size: 12px;
+      }
+      
+      .wilaya-tag {
+        font-size: 11px;
+        padding: 3px 8px;
+      }
+      
+      .type-badge {
+        font-size: 11px;
+        padding: 5px 10px;
+      }
+      
+      .price-amount {
+        font-size: 12px;
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .action-btn {
+        width: 40px;
+        height: 40px;
+        margin: 0 3px;
+      }
+
+      .action-btn ion-icon {
+        font-size: 22px;
+      }
+    }
+
+    /* 🆕 Style pour le compteur Livrés */
+    .stats-card.primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .stats-card.primary i {
+      color: white;
+      opacity: 0.9;
+    }
+
+    .stats-card.primary h3,
+    .stats-card.primary p {
+      color: white;
+    }
+  </style>
+
+  <!-- ✨ STYLES MODERNES POUR SECTION COMMERÇANTS ✨ -->
+  <style>
+    /* En-tête moderne avec gradient */
+    .commercants-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .header-title-group {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .title-icon-wrapper {
+      width: 70px;
+      height: 70px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(10px);
+    }
+
+    .title-icon-wrapper ion-icon {
+      font-size: 40px;
+      color: white;
+    }
+
+    .commercants-header h1 {
+      color: white;
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .header-subtitle {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 14px;
+      margin: 5px 0 0 0;
+    }
+
+    .btn-modern {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-modern ion-icon {
+      font-size: 20px;
+    }
+
+    .btn-modern.btn-primary {
+      background: white;
+      color: #667eea;
+    }
+
+    .btn-modern.btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Cards statistiques modernes */
+    .stats-modern-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-modern-card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-modern-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      opacity: 0.1;
+      transform: translate(30%, -30%);
+    }
+
+    .stat-modern-card.card-green::before {
+      background: #10b981;
+    }
+
+    .stat-modern-card.card-blue::before {
+      background: #3b82f6;
+    }
+
+    .stat-modern-card.card-orange::before {
+      background: #f59e0b;
+    }
+
+    .stat-modern-card.card-purple::before {
+      background: #8b5cf6;
+    }
+
+    .stat-modern-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-modern-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .card-green .stat-modern-icon {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .card-blue .stat-modern-icon {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+
+    .card-orange .stat-modern-icon {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    .card-purple .stat-modern-icon {
+      background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    }
+
+    .stat-modern-icon ion-icon {
+      font-size: 28px;
+      color: white;
+    }
+
+    .stat-modern-label {
+      font-size: 13px;
+      color: #6b7280;
+      margin: 0 0 8px 0;
+      font-weight: 500;
+    }
+
+    .stat-modern-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #111827;
+      margin: 0 0 8px 0;
+    }
+
+    .stat-modern-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .card-green .stat-modern-badge {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .card-blue .stat-modern-badge {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .card-orange .stat-modern-badge {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .card-purple .stat-modern-badge {
+      background: #ede9fe;
+      color: #5b21b6;
+    }
+
+    /* Barre de recherche moderne */
+    .modern-toolbar {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-modern {
+      flex: 1;
+      min-width: 250px;
+      position: relative;
+    }
+
+    .search-modern ion-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 20px;
+      color: #9ca3af;
+    }
+
+    .search-modern input {
+      width: 100%;
+      padding: 12px 16px 12px 48px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .search-modern input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .filter-modern-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .filter-modern-item {
+      position: relative;
+      min-width: 180px;
+    }
+
+    .filter-modern-item ion-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+      color: #9ca3af;
+      pointer-events: none;
+    }
+
+    .filter-modern-item select {
+      width: 100%;
+      padding: 12px 16px 12px 40px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: white;
+    }
+
+    .filter-modern-item select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    /* Tableau moderne */
+    .modern-table-container {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    }
+
+    .modern-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .modern-table thead {
+      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    }
+
+    .modern-table thead th {
+      padding: 16px 12px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 13px;
+      color: #374151;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      width: 11.11%; /* 100% / 9 colonnes = taille égale */
+    }
+
+    .modern-table thead th ion-icon {
+      font-size: 16px;
+      vertical-align: middle;
+      margin-right: 6px;
+      color: #667eea;
+    }
+
+    .modern-table tbody tr {
+      border-bottom: 1px solid #f3f4f6;
+      transition: background-color 0.2s ease;
+    }
+
+    .modern-table tbody tr:hover {
+      background-color: #f9fafb;
+    }
+
+    .modern-table tbody td {
+      padding: 14px 12px;
+      font-size: 14px;
+      color: #4b5563;
+      vertical-align: middle;
+      text-align: center;
+    }
+
+    /* Alignements spécifiques */
+    .modern-table tbody td:nth-child(1) {
+      font-weight: 600;
+      color: #667eea;
+      font-size: 13px;
+    }
+
+    .modern-table tbody td:nth-child(2) {
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .modern-table tbody td:nth-child(3) {
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    .modern-table tbody td:nth-child(4) {
+      font-family: monospace;
+      font-weight: 500;
+    }
+
+    /* Badges de statut */
+    .status-badge {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    .status-badge.actif {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-badge.inactif {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    /* Badge compteur colis */
+    .colis-count {
+      display: inline-block;
+      padding: 4px 10px;
+      background: #e0e7ff;
+      color: #3730a3;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    /* Boutons d'action dans le tableau */
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .action-btn-small {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .action-btn-small::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.4s, height 0.4s;
+    }
+
+    .action-btn-small:hover::before {
+      width: 100%;
+      height: 100%;
+    }
+
+    .action-btn-small ion-icon {
+      font-size: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .action-btn-small.btn-view {
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+      color: white;
+    }
+
+    .action-btn-small.btn-view:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+    }
+
+    .action-btn-small.btn-edit {
+      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+      color: white;
+    }
+
+    .action-btn-small.btn-edit:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    .action-btn-small.btn-delete {
+      background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+      color: white;
+    }
+
+    .action-btn-small.btn-delete:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    }
+
+    .action-btn-small:active {
+      transform: translateY(-1px) scale(0.95);
+    }
+
+    /* État vide */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px !important;
+    }
+
+    .empty-illustration {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .empty-illustration ion-icon {
+      font-size: 80px;
+      color: #d1d5db;
+    }
+
+    .empty-illustration h3 {
+      font-size: 20px;
+      color: #374151;
+      margin: 0;
+    }
+
+    .empty-illustration p {
+      font-size: 14px;
+      color: #9ca3af;
+      margin: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .commercants-header {
+        padding: 20px;
+      }
+
+      .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .stats-modern-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .modern-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .search-modern,
+      .filter-modern-item {
+        width: 100%;
+      }
+    }
+  </style>
+
+  <link rel="stylesheet" href="../shared/css/colis-form.css" />
+  <link rel="stylesheet" href="../shared/css/colis-form-modern.css" />
+  </head>
+<body>
+  <div class="container">
+    <!-- ===== Sidebar ===== -->
+    <div class="navigation">
+      <ul>
+        <li class="logo">
+          <a href="#">
+            <span class="icon"><img src="./logo.png" alt="Logo" class="logo-img"/></span>
+          </a>
+        </li>
+        <li class="hovered"><a href="#" data-page="dashboard"><span class="icon"><ion-icon name="home-outline"></ion-icon></span><span class="title">Dashboard</span></a></li>
+        <li><a href="#" data-page="colis"><span class="icon"><ion-icon name="cube-outline"></ion-icon></span><span class="title">Colis</span></a></li>
+        <li><a href="#" data-page="expediteur"><span class="icon"><ion-icon name="person-add-outline"></ion-icon></span><span class="title">Expéditeur</span></a></li>
+        <li><a href="#" data-page="libre"><span class="icon"><ion-icon name="walk-outline"></ion-icon></span><span class="title">Libre</span></a></li>
+        <li><a href="#" data-page="reception"><span class="icon"><ion-icon name="download-outline"></ion-icon></span><span class="title">Réception</span></a></li>
+        <li><a href="#" data-page="transfert"><span class="icon"><ion-icon name="swap-horizontal-outline"></ion-icon></span><span class="title">Transfert</span></a></li>
+        <li><a href="#" data-page="retours"><span class="icon"><ion-icon name="return-down-back-outline"></ion-icon></span><span class="title">Retours</span></a></li>
+        <li><a href="#" data-page="commercants"><span class="icon"><ion-icon name="storefront-outline"></ion-icon></span><span class="title">Commerçants</span></a></li>
+        <li><a href="#" data-page="contact"><span class="icon"><ion-icon name="call-outline"></ion-icon></span><span class="title">Contact pour livraison</span></a></li>
+        <li><a href="#" data-page="livraison-clients"><span class="icon"><ion-icon name="bicycle-outline"></ion-icon></span><span class="title">Livraison aux clients</span></a></li>
+        <li><a href="#" data-page="affectation"><span class="icon"><ion-icon name="person-add-outline"></ion-icon></span><span class="title">Affectation</span></a></li>
+        <li><a href="#" data-page="rendre-colis"><span class="icon"><ion-icon name="return-up-back-outline"></ion-icon></span><span class="title">Rendre un colis (livreur)</span></a></li>
+        <li><a href="#" data-page="caisse-agent"><span class="icon"><ion-icon name="wallet-outline"></ion-icon></span><span class="title">Ma Caisse</span></a></li>
+        <li><a href="#" data-page="paiement-commercant"><span class="icon"><ion-icon name="card-outline"></ion-icon></span><span class="title">Paiement commerçant</span></a></li>
+        <li><a href="#" data-page="reclamation"><span class="icon"><ion-icon name="alert-circle-outline"></ion-icon></span><span class="title">Réclamation</span></a></li>
+        <li><a href="#" data-page="disponibilite"><span class="icon"><ion-icon name="checkmark-done-outline"></ion-icon></span><span class="title">Disponibilité</span></a></li>
+        <li><a href="#" onclick="logoutAgent(event)"><span class="icon"><ion-icon name="log-out-outline"></ion-icon></span><span class="title">Déconnexion</span></a></li>
+      </ul>
+    </div>
+    <div class="main">
+      <!-- Topbar placée en haut -->
+      <div class="topbar">
+        <div class="toggle"><ion-icon name="menu-outline"></ion-icon></div>
+        <div class="search">
+          <label>
+            <input type="text" placeholder="Rechercher dans le dashboard..."/>
+            <ion-icon name="search-outline"></ion-icon>
+          </label>
+        </div>
+        <div class="user-info" style="display: flex; align-items: center; gap: 15px;">
+          <div class="user-details" style="text-align: right;">
+            <div id="agenceNom" style="font-weight: 600; color: #1976D2; font-size: 1em;">Agent</div>
+            <div id="agenceWilaya" style="font-size: 0.85em; color: #666;">Chargement...</div>
+          </div>
+          <ion-icon name="person-circle-outline" style="font-size: 2.5em; color: #1976D2;"></ion-icon>
+        </div>
+      </div>
+      <!-- Tableau de bord résumé -->
+      <section id="dashboard" class="page active">
+        <div class="dashboard-header" style="margin-bottom: 30px;">
+          <h2 style="color: #1976D2; font-size: 28px; margin-bottom: 10px;">
+            <i class="fas fa-chart-line"></i> Tableau de Bord Agent
+          </h2>
+          <p style="color: #666; font-size: 14px;">Vue d'ensemble de votre activité</p>
+        </div>
+        
+        <!-- Compteurs statistiques avec animations -->
+        <div class="main-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px;">
+          <!-- Statistiques Colis -->
+          <div class="stats-card-animated" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 15px; color: white; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3); transition: all 0.3s ease; cursor: pointer;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div>
+                <h3 style="font-size: 14px; opacity: 0.9; margin-bottom: 10px; font-weight: 500;">📦 Total Colis</h3>
+                <p id="dashTotalColis" style="font-size: 42px; font-weight: bold; margin: 0; line-height: 1;">0</p>
+                <span style="font-size: 12px; opacity: 0.8; margin-top: 5px; display: block;">Tous statuts confondus</span>
+              </div>
+              <i class="fas fa-box" style="font-size: 50px; opacity: 0.2;"></i>
+            </div>
+          </div>
+          
+          <div class="stats-card-animated" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); padding: 25px; border-radius: 15px; color: white; box-shadow: 0 8px 20px rgba(17, 153, 142, 0.3); transition: all 0.3s ease; cursor: pointer;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div>
+                <h3 style="font-size: 14px; opacity: 0.9; margin-bottom: 10px; font-weight: 500;">✅ Colis Livrés</h3>
+                <p id="dashColisLivres" style="font-size: 42px; font-weight: bold; margin: 0; line-height: 1;">0</p>
+                <span style="font-size: 12px; opacity: 0.8; margin-top: 5px; display: block;">Livraisons réussies</span>
+              </div>
+              <i class="fas fa-check-circle" style="font-size: 50px; opacity: 0.2;"></i>
+            </div>
+          </div>
+          
+          <div class="stats-card-animated" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 25px; border-radius: 15px; color: white; box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3); transition: all 0.3s ease; cursor: pointer;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div>
+                <h3 style="font-size: 14px; opacity: 0.9; margin-bottom: 10px; font-weight: 500;">🚚 En Transit</h3>
+                <p id="dashColisTransit" style="font-size: 42px; font-weight: bold; margin: 0; line-height: 1;">0</p>
+                <span style="font-size: 12px; opacity: 0.8; margin-top: 5px; display: block;">En cours de livraison</span>
+              </div>
+              <i class="fas fa-truck" style="font-size: 50px; opacity: 0.2;"></i>
+            </div>
+          </div>
+          
+          <div class="stats-card-animated" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 25px; border-radius: 15px; color: white; box-shadow: 0 8px 20px rgba(240, 147, 251, 0.3); transition: all 0.3s ease; cursor: pointer;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div>
+                <h3 style="font-size: 14px; opacity: 0.9; margin-bottom: 10px; font-weight: 500;">⏰ En Attente</h3>
+                <p id="dashColisAttente" style="font-size: 42px; font-weight: bold; margin: 0; line-height: 1;">0</p>
+                <span style="font-size: 12px; opacity: 0.8; margin-top: 5px; display: block;">À traiter</span>
+              </div>
+              <i class="fas fa-clock" style="font-size: 50px; opacity: 0.2;"></i>
+            </div>
+          </div>
+          
+          <!-- Statistiques Commerçants -->
+          <div class="stats-card-animated" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 25px; border-radius: 15px; color: white; box-shadow: 0 8px 20px rgba(250, 112, 154, 0.3); transition: all 0.3s ease; cursor: pointer;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div>
+                <h3 style="font-size: 14px; opacity: 0.9; margin-bottom: 10px; font-weight: 500;">🏪 Commerçants</h3>
+                <p id="dashTotalCommercants" style="font-size: 42px; font-weight: bold; margin: 0; line-height: 1;">0</p>
+                <span style="font-size: 12px; opacity: 0.8; margin-top: 5px; display: block;">Clients actifs</span>
+              </div>
+              <i class="fas fa-store" style="font-size: 50px; opacity: 0.2;"></i>
+            </div>
+          </div>
+          
+          <!-- Statistiques Retours -->
+          <div class="stats-card-animated" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); padding: 25px; border-radius: 15px; color: white; box-shadow: 0 8px 20px rgba(48, 207, 208, 0.3); transition: all 0.3s ease; cursor: pointer;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div>
+                <h3 style="font-size: 14px; opacity: 0.9; margin-bottom: 10px; font-weight: 500;">↩️ Retours</h3>
+                <p id="dashTotalRetours" style="font-size: 42px; font-weight: bold; margin: 0; line-height: 1;">0</p>
+                <span style="font-size: 12px; opacity: 0.8; margin-top: 5px; display: block;">Colis retournés</span>
+              </div>
+              <i class="fas fa-undo" style="font-size: 50px; opacity: 0.2;"></i>
+            </div>
+          </div>
+          
+          <!-- Statistiques Caisse -->
+          <div class="stats-card-animated" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); padding: 25px; border-radius: 15px; color: #333; box-shadow: 0 8px 20px rgba(168, 237, 234, 0.3); transition: all 0.3s ease; cursor: pointer;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div>
+                <h3 style="font-size: 14px; opacity: 0.8; margin-bottom: 10px; font-weight: 500;">💰 Solde Caisse</h3>
+                <p id="dashSoldeCaisse" style="font-size: 32px; font-weight: bold; margin: 0; line-height: 1; color: #667eea;">0 DA</p>
+                <span style="font-size: 12px; opacity: 0.7; margin-top: 5px; display: block;">Solde disponible</span>
+              </div>
+              <i class="fas fa-cash-register" style="font-size: 50px; opacity: 0.15; color: #667eea;"></i>
+            </div>
+          </div>
+          
+          <div class="stats-card-animated" style="background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%); padding: 25px; border-radius: 15px; color: #333; box-shadow: 0 8px 20px rgba(251, 194, 235, 0.3); transition: all 0.3s ease; cursor: pointer;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div>
+                <h3 style="font-size: 14px; opacity: 0.8; margin-bottom: 10px; font-weight: 500;">💵 Recettes Aujourd'hui</h3>
+                <p id="dashRecettesJour" style="font-size: 32px; font-weight: bold; margin: 0; line-height: 1; color: #11998e;">0 DA</p>
+                <span style="font-size: 12px; opacity: 0.7; margin-top: 5px; display: block;">Recettes du jour</span>
+              </div>
+              <i class="fas fa-coins" style="font-size: 50px; opacity: 0.15; color: #11998e;"></i>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Message de bienvenue avec icône -->
+        <div class="welcome-message" style="padding: 30px; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border-left: 5px solid #1976D2;">
+          <h3 style="color: #1976D2; margin-bottom: 15px; font-size: 20px; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-user-shield"></i> Bienvenue sur votre espace Agent
+          </h3>
+          <p style="color: #666; line-height: 1.8; font-size: 15px; margin: 0;">
+            <strong>📋 Gestion complète :</strong> Gérez vos colis, commerçants, retours et caisse depuis les sections du menu de gauche.
+            <br><br>
+            <strong>📊 Statistiques en temps réel :</strong> Les compteurs ci-dessus sont automatiquement mis à jour à chaque changement.
+            <br><br>
+            <strong>⚡ Actions rapides :</strong> Utilisez les boutons dans chaque section pour créer de nouveaux éléments ou exporter vos données.
+          </p>
+        </div>
+        
+        <!-- Style pour les animations -->
+        <style>
+          .stats-card-animated:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2) !important;
+          }
+          
+          .stats-card-animated {
+            animation: fadeInUp 0.5s ease-out forwards;
+            opacity: 0;
+          }
+          
+          .stats-card-animated:nth-child(1) { animation-delay: 0.1s; }
+          .stats-card-animated:nth-child(2) { animation-delay: 0.2s; }
+          .stats-card-animated:nth-child(3) { animation-delay: 0.3s; }
+          .stats-card-animated:nth-child(4) { animation-delay: 0.4s; }
+          .stats-card-animated:nth-child(5) { animation-delay: 0.5s; }
+          .stats-card-animated:nth-child(6) { animation-delay: 0.6s; }
+          .stats-card-animated:nth-child(7) { animation-delay: 0.7s; }
+          .stats-card-animated:nth-child(8) { animation-delay: 0.8s; }
+          
+          @keyframes fadeInUp {
+            from {
+              opacity: 0;
+              transform: translateY(20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          
+          .welcome-message {
+            animation: fadeIn 1s ease-out 0.9s forwards;
+            opacity: 0;
+          }
+          
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+            }
+            to {
+              opacity: 1;
+            }
+          }
+        </style>
+      </section>
+
+      <!-- ==================== SECTION COLIS ==================== -->
+      <section id="colis" class="page">
+        <div class="colis-container">
+          <!-- Statistiques principales -->
+          <div class="main-stats">
+            <div class="stats-card success">
+              <i class="fas fa-box"></i>
+              <div class="stats-info">
+                <h3>Total Colis</h3>
+                <p id="totalColis">0</p>
+              </div>
+            </div>
+            <div class="stats-card primary">
+              <i class="fas fa-check-circle"></i>
+              <div class="stats-info">
+                <h3>Livrés</h3>
+                <p id="colisLivres">0</p>
+              </div>
+            </div>
+            <div class="stats-card info">
+              <i class="fas fa-truck"></i>
+              <div class="stats-info">
+                <h3>En Transit</h3>
+                <p id="colisTransit">0</p>
+              </div>
+            </div>
+            <div class="stats-card warning">
+              <i class="fas fa-clock"></i>
+              <div class="stats-info">
+                <h3>En Attente</h3>
+                <p id="colisAttente">0</p>
+              </div>
+            </div>
+            <div class="stats-card danger">
+              <i class="fas fa-exclamation-triangle"></i>
+              <div class="stats-info">
+                <h3>Retards</h3>
+                <p id="colisRetard">0</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Barre d'outils principale -->
+          <div class="main-toolbar">
+            <div class="left-tools">
+              <button id="scanColisBtn" class="tool-btn scan">
+                <i class="fas fa-qrcode"></i>
+                Scanner
+              </button>
+              <button id="addColisBtn" class="tool-btn add">
+                <i class="fas fa-plus"></i>
+                Nouveau Colis
+              </button>
+              <button id="importColisBtn" class="tool-btn import">
+                <i class="fas fa-file-import"></i>
+                Importer
+              </button>
+              <button id="exportColisBtn" class="tool-btn export">
+                <i class="fas fa-file-export"></i>
+                Exporter
+              </button>
+            </div>
+            <div class="right-tools">
+              <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="colisSearchInput" placeholder="Rechercher..."/>
+              </div>
+            </div>
+          </div>
+
+          <!-- Zone de scan -->
+          <div id="scanColisZone" class="scan-zone" style="display:none;">
+            <div class="scan-container">
+              <div class="scan-header">
+                <h3><i class="fas fa-tasks"></i> Scanner un colis pour le marquer en traitement</h3>
+                <p>Scannez le QR code du colis ou entrez le code manuellement</p>
+              </div>
+              
+              <!-- Saisie manuelle -->
+              <div class="manual-input-section">
+                <label for="manualColisInput">
+                  <i class="fas fa-keyboard"></i> Saisie manuelle du code
+                </label>
+                <div class="input-with-btn">
+                  <input 
+                    type="text" 
+                    id="manualColisInput" 
+                    placeholder="Entrez le code de suivi du colis..."
+                    class="manual-input">
+                  <button id="submitManualColis" class="btn-submit-manual">
+                    <i class="fas fa-check"></i> Valider
+                  </button>
+                </div>
+              </div>
+
+              <div class="separator">
+                <span>OU</span>
+              </div>
+
+              <!-- Scanner QR -->
+              <div id="qr-reader"></div>
+              
+              <button id="closeScanColis" class="tool-btn close">
+                <i class="fas fa-times"></i>
+                Fermer
+              </button>
+            </div>
+          </div>
+
+          <!-- Filtres avancés -->
+          <div class="filters-section">
+            <div class="filter-group">
+              <label>Date</label>
+              <select id="filterDate">
+                <option value="all">Toutes les dates</option>
+                <option value="today">Aujourd'hui</option>
+                <option value="week">Cette semaine</option>
+                <option value="month">Ce mois</option>
+                <option value="custom">Personnalisé</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Statut</label>
+              <select id="filterStatut">
+                <option value="all">Tous les statuts</option>
+                <option value="enCours">En cours</option>
+                <option value="enTransit">En transit</option>
+                <option value="livre">Livré</option>
+                <option value="retour">Retourné</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Type</label>
+              <select id="filterType">
+                <option value="all">Tous les types</option>
+                <option value="standard">Standard</option>
+                <option value="express">Express</option>
+                <option value="economique">Économique</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Wilaya</label>
+              <select id="filterWilaya">
+                <option value="all">Toutes les wilayas</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Tableau des colis -->
+          <div class="table-container">
+            <table id="colisTable" class="modern-table">
+              <thead>
+                <tr>
+                  <th>
+                    <div class="checkbox-wrapper">
+                      <input type="checkbox" id="selectAllColis" />
+                      <label for="selectAllColis"></label>
+                    </div>
+                  </th>
+                  <th>Référence</th>
+                  <th>Nom d'Expéditeur</th>
+                  <th>Tél. Expéditeur</th>
+                  <th>Agence Expéditeur</th>
+                  <th>Client</th>
+                  <th>Téléphone</th>
+                  <th>Wilaya Source</th>
+                  <th>Wilaya Dest.</th>
+                  <th>Adresse</th>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Contenu</th>
+                  <th>Montant</th>
+                  <th>Statut</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Les données seront chargées dynamiquement par JavaScript -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="pagination">
+            <button id="prevPage" class="page-btn" disabled>
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="page-info">
+              Page <span id="currentPage">1</span> sur <span id="totalPages">1</span>
+            </div>
+            <button id="nextPage" class="page-btn">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+            <select id="pageSize" class="page-size">
+              <option value="10">10 par page</option>
+              <option value="25">25 par page</option>
+              <option value="50">50 par page</option>
+              <option value="100">100 par page</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 📦 Modal Ajout Colis - AGENT (Wilaya + Bureau auto-remplis) -->
+  <div id="colisModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2><i class="fas fa-box"></i> Ajouter un Colis</h2>
+        <span class="close-button">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="colisForm" class="param-form">
+          <div class="form-columns">
+            <!-- Colonne gauche -->
+            <div>
+              <!-- Expéditeur -->
+              <div class="form-section">
+                <h3 class="form-section-title">
+                  <i class="fas fa-warehouse"></i>Expéditeur
+                </h3>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="nomExpediteur"><i class="fas fa-user"></i> Nom expéditeur</label>
+                    <input type="text" id="nomExpediteur" name="nomExpediteur" placeholder="Nom de l'expéditeur" required>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="telExpediteur"><i class="fas fa-phone"></i> Téléphone expéditeur</label>
+                    <input type="tel" id="telExpediteur" name="telExpediteur" placeholder="0X XX XX XX XX" required>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="wilayaExpediteur"><i class="fas fa-map"></i> Wilaya expéditeur</label>
+                    <select id="wilayaExpediteur" disabled required>
+                      <option value="">Votre wilaya</option>
+                    </select>
+                    <small style="color: #16a34a; font-size: 12px; margin-top: 4px; display: block;">
+                      <i class="fas fa-info-circle"></i> Auto-rempli avec votre wilaya
+                    </small>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="bureauSource"><i class="fas fa-building"></i> Bureau expéditeur</label>
+                    <select id="bureauSource" disabled required>
+                      <option value="">Votre bureau</option>
+                    </select>
+                    <small style="color: #16a34a; font-size: 12px; margin-top: 4px; display: block;">
+                      <i class="fas fa-info-circle"></i> Auto-rempli avec votre bureau
+                    </small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Type de livraison -->
+              <div class="form-section">
+                <h3 class="form-section-title">
+                  <i class="fas fa-truck"></i>Type de livraison
+                </h3>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="typelivraison"><i class="fas fa-map-marker-alt"></i> Mode de livraison</label>
+                    <select id="typelivraison" required>
+                      <option value="">Sélectionner le type</option>
+                      <option value="domicile">Livraison à domicile</option>
+                      <option value="bureau">Livraison au bureau</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Détails du colis -->
+              <div class="form-section">
+                <h3 class="form-section-title">
+                  <i class="fas fa-box"></i>Détails du colis
+                </h3>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="poidsColis"><i class="fas fa-weight"></i> Poids (kg)</label>
+                    <input type="number" step="0.1" id="poidsColis" placeholder="Ex: 2.5" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="prixColis"><i class="fas fa-tag"></i> Prix du colis (DA)</label>
+                    <input type="number" id="prixColis" placeholder="Ex: 5000" required>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group" style="width: 100%; grid-column: 1 / -1;">
+                    <label for="contenu"><i class="fas fa-cube"></i> Contenu du colis</label>
+                    <input type="text" id="contenu" placeholder="Ex: Vêtements, Électronique, Documents..." required>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group" style="width: 100%; grid-column: 1 / -1;">
+                    <label for="typeColis"><i class="fas fa-tag"></i> Type de colis</label>
+                    <select id="typeColis" required>
+                      <option value="">Sélectionner un type</option>
+                      <option value="standard">Standard</option>
+                      <option value="fragile">Fragile</option>
+                      <option value="express">Express</option>
+                      <option value="volumineux">Volumineux</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group" style="width: 100%; grid-column: 1 / -1;">
+                    <label for="description"><i class="fas fa-info-circle"></i> Description détaillée</label>
+                    <textarea id="description" rows="3" placeholder="Ajoutez des détails supplémentaires..." required></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Colonne droite -->
+            <div>
+              <!-- Destinataire -->
+              <div class="form-section">
+                <h3 class="form-section-title">
+                  <i class="fas fa-user"></i>Destinataire
+                </h3>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="nomClient"><i class="fas fa-user-circle"></i> Nom complet</label>
+                    <input type="text" id="nomClient" placeholder="Nom du destinataire" required>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="telClient"><i class="fas fa-phone"></i> Téléphone</label>
+                    <input type="tel" id="telClient" placeholder="0X XX XX XX XX" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="telSecondaire"><i class="fas fa-phone-square"></i> Tél. secondaire</label>
+                    <input type="tel" id="telSecondaire" placeholder="Optionnel">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="wilayaDest"><i class="fas fa-map"></i> Wilaya destinataire</label>
+                    <select id="wilayaDest" required>
+                      <option value="">Sélectionner une wilaya</option>
+                    </select>
+                  </div>
+                </div>
+                <!-- Bureau Destination (affiché si type = bureau) -->
+                <div class="form-row" id="bureauDestGroup">
+                  <div class="form-group">
+                    <label for="bureauDest"><i class="fas fa-building"></i> Bureau destination</label>
+                    <select id="bureauDest">
+                      <option value="">Sélectionner un bureau</option>
+                    </select>
+                  </div>
+                </div>
+                <!-- Adresse (affichée si type = domicile) -->
+                <div class="form-row" id="adresseGroup" style="display: none;">
+                  <div class="form-group" style="width: 100%; grid-column: 1 / -1;">
+                    <label for="adresseLivraison"><i class="fas fa-map-marked-alt"></i> Adresse de livraison</label>
+                    <textarea id="adresseLivraison" rows="3" placeholder="Adresse complète de livraison"></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Résumé des frais -->
+              <div class="form-section">
+                <h3 class="form-section-title">
+                  <i class="fas fa-calculator"></i>Résumé des frais
+                </h3>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label><i class="fas fa-box"></i> Prix du colis</label>
+                    <p id="resumePrixColis" class="montant">0 DA</p>
+                  </div>
+                  <div class="form-group">
+                    <label><i class="fas fa-truck"></i> Frais de livraison</label>
+                    <p id="fraisLivraison" class="montant">0 DA</p>
+                    <div id="resumeFraisLivraison" style="font-size: 0.85em; margin-top: 5px;"></div>
+                  </div>
+                </div>
+                <div class="form-row total-row">
+                  <div class="form-group">
+                    <label><i class="fas fa-money-bill-wave"></i> Total à payer</label>
+                    <p id="totalAPayer" class="montant total">0 DA</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('colisModal').style.display='none'">
+              <i class="fas fa-times"></i> Annuler
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-plus"></i> Créer le colis
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+      </section> <!-- Fin de la section Colis -->
+
+      <!-- Section Commerçants -->
+      <section id="commercants" class="page">
+        <!-- En-tête moderne avec gradient -->
+        <div class="commercants-header">
+          <div class="header-content">
+            <div class="header-title-group">
+              <div class="title-icon-wrapper">
+                <ion-icon name="storefront"></ion-icon>
+              </div>
+              <div>
+                <h1>Gestion des Commerçants</h1>
+                <p class="header-subtitle">Gérez vos partenaires commerciaux</p>
+              </div>
+            </div>
+            <button id="btnNouveauCommercant" class="btn-modern btn-primary">
+              <ion-icon name="add-circle"></ion-icon>
+              <span>Nouveau Commerçant</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Statistiques modernes avec cards -->
+        <div class="stats-modern-grid">
+          <div class="stat-modern-card card-green">
+            <div class="stat-modern-icon">
+              <ion-icon name="people"></ion-icon>
+            </div>
+            <div class="stat-modern-content">
+              <p class="stat-modern-label">Total Commerçants</p>
+              <h2 class="stat-modern-value" id="totalCommercants">0</h2>
+              <span class="stat-modern-badge">+12% ce mois</span>
+            </div>
+          </div>
+
+          <div class="stat-modern-card card-blue">
+            <div class="stat-modern-icon">
+              <ion-icon name="checkmark-done-circle"></ion-icon>
+            </div>
+            <div class="stat-modern-content">
+              <p class="stat-modern-label">Commerçants Actifs</p>
+              <h2 class="stat-modern-value" id="commercantsActifs">0</h2>
+              <span class="stat-modern-badge">En ligne</span>
+            </div>
+          </div>
+
+          <div class="stat-modern-card card-orange">
+            <div class="stat-modern-icon">
+              <ion-icon name="cube"></ion-icon>
+            </div>
+            <div class="stat-modern-content">
+              <p class="stat-modern-label">Total Colis</p>
+              <h2 class="stat-modern-value" id="totalColisCommercants">0</h2>
+              <span class="stat-modern-badge">Cette semaine</span>
+            </div>
+          </div>
+
+          <div class="stat-modern-card card-purple">
+            <div class="stat-modern-icon">
+              <ion-icon name="trending-up"></ion-icon>
+            </div>
+            <div class="stat-modern-content">
+              <p class="stat-modern-label">Chiffre d'Affaires</p>
+              <h2 class="stat-modern-value" id="caCommercants">0 DA</h2>
+              <span class="stat-modern-badge">Total</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barre de recherche et filtres modernes -->
+        <div class="modern-toolbar">
+          <div class="search-modern">
+            <ion-icon name="search"></ion-icon>
+            <input type="text" id="searchCommercant" placeholder="Rechercher par nom, email, téléphone...">
+          </div>
+          <div class="filter-modern-group">
+            <div class="filter-modern-item">
+              <ion-icon name="location"></ion-icon>
+              <select id="filterWilayaCommercant">
+                <option value="">Toutes les wilayas</option>
+              </select>
+            </div>
+            <div class="filter-modern-item">
+              <ion-icon name="funnel"></ion-icon>
+              <select id="filterStatusCommercant">
+                <option value="">Tous les statuts</option>
+                <option value="actif">Actif</option>
+                <option value="inactif">Inactif</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tableau moderne -->
+        <div class="modern-table-container">
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th><ion-icon name="key"></ion-icon> ID</th>
+                <th><ion-icon name="person"></ion-icon> Nom Complet</th>
+                <th><ion-icon name="mail"></ion-icon> Email</th>
+                <th><ion-icon name="call"></ion-icon> Téléphone</th>
+                <th><ion-icon name="location"></ion-icon> Wilaya</th>
+                <th><ion-icon name="cube"></ion-icon> Colis</th>
+                <th><ion-icon name="ellipse"></ion-icon> Statut</th>
+                <th><ion-icon name="calendar"></ion-icon> Inscription</th>
+                <th><ion-icon name="settings"></ion-icon> Actions</th>
+              </tr>
+            </thead>
+            <tbody id="commercantsTableBody">
+              <tr class="empty-state">
+                <td colspan="9">
+                  <div class="empty-illustration">
+                    <ion-icon name="storefront-outline"></ion-icon>
+                    <h3>Aucun commerçant trouvé</h3>
+                    <p>Commencez par ajouter votre premier commerçant</p>
+                    <button class="btn-modern btn-primary" onclick="document.getElementById('btnNouveauCommercant').click()">
+                      <ion-icon name="add-circle"></ion-icon>
+                      Ajouter un commerçant
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Modal Nouveau Commerçant -->
+        <div id="modalNouveauCommercant" class="modal" style="display: none;">
+          <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+              <h2><ion-icon name="person-add-outline"></ion-icon> Nouveau Commerçant</h2>
+              <button class="modal-close" onclick="document.getElementById('modalNouveauCommercant').style.display='none'">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+
+            <form id="formNouveauCommercant" class="modal-body">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Nom *</label>
+                  <input type="text" id="commercantNom" required>
+                </div>
+                <div class="form-group">
+                  <label>Prénom</label>
+                  <input type="text" id="commercantPrenom">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Email *</label>
+                  <input type="email" id="commercantEmail" required>
+                </div>
+                <div class="form-group">
+                  <label>Téléphone *</label>
+                  <input type="tel" id="commercantTelephone" required>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Mot de passe *</label>
+                  <input type="password" id="commercantPassword" required>
+                </div>
+                <div class="form-group">
+                  <label>Wilaya *</label>
+                  <select id="commercantWilaya" required>
+                    <option value="">Sélectionner...</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Adresse</label>
+                <input type="text" id="commercantAdresse">
+              </div>
+
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('modalNouveauCommercant').style.display='none'">
+                  Annuler
+                </button>
+                <button type="submit" class="btn btn-primary">
+                  <ion-icon name="checkmark-circle-outline"></ion-icon>
+                  Créer le commerçant
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SECTION PAIEMENT COMMERCANT ==================== -->
+      <section id="paiement-commercant" class="page">
+        <!-- Header -->
+        <div class="commercants-header">
+          <div class="header-content">
+            <div class="header-title-group">
+              <div class="title-icon-wrapper">
+                <ion-icon name="card"></ion-icon>
+              </div>
+              <div>
+                <h1>Paiement Commerçants</h1>
+                <p class="header-subtitle">Gérez les paiements aux commerçants pour les colis livrés</p>
+              </div>
+            </div>
+            <button id="btnActualiserPaiements" class="btn-modern btn-primary">
+              <ion-icon name="refresh"></ion-icon>
+              <span>Actualiser</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Statistiques -->
+        <div class="stats-modern-grid">
+          <div class="stat-modern-card">
+            <div class="stat-modern-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+              <ion-icon name="people"></ion-icon>
+            </div>
+            <div class="stat-modern-info">
+              <h3 class="stat-modern-label">Commerçants à payer</h3>
+              <h2 class="stat-modern-value" id="statCommercantsAPayer">0</h2>
+            </div>
+          </div>
+
+          <div class="stat-modern-card">
+            <div class="stat-modern-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+              <ion-icon name="cube"></ion-icon>
+            </div>
+            <div class="stat-modern-info">
+              <h3 class="stat-modern-label">Colis à régler</h3>
+              <h2 class="stat-modern-value" id="statColisAReglement">0</h2>
+            </div>
+          </div>
+
+          <div class="stat-modern-card">
+            <div class="stat-modern-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+              <ion-icon name="cash"></ion-icon>
+            </div>
+            <div class="stat-modern-info">
+              <h3 class="stat-modern-label">Montant total</h3>
+              <h2 class="stat-modern-value" id="statMontantTotal">0 DA</h2>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barre de recherche -->
+        <div class="filters-section">
+          <div class="filter-group">
+            <label>
+              <ion-icon name="search"></ion-icon>
+              Rechercher un commerçant
+            </label>
+            <input type="text" id="searchPaiement" placeholder="Nom, email ou téléphone...">
+          </div>
+        </div>
+
+        <!-- Tableau des paiements -->
+        <div class="table-container">
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th>Commerçant</th>
+                <th>Email</th>
+                <th>Téléphone</th>
+                <th class="text-center">Nb Colis</th>
+                <th class="text-right">Montant Total</th>
+                <th class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="paiementsTableBody">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 40px;">
+                  <ion-icon name="hourglass-outline" style="font-size: 48px; color: #ccc;"></ion-icon>
+                  <p>Chargement des paiements...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Modal de confirmation de paiement -->
+        <div id="modalPaiement" class="modal" style="display: none;">
+          <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+              <h2><ion-icon name="cash"></ion-icon> Confirmer le paiement</h2>
+              <button class="modal-close" onclick="annulerPaiement()">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+
+            <div class="modal-body">
+              <div class="paiement-resume">
+                <div class="resume-item">
+                  <span class="resume-label">Commerçant:</span>
+                  <span class="resume-value" id="paiementCommercantNom">-</span>
+                </div>
+                <div class="resume-item">
+                  <span class="resume-label">Nombre de colis:</span>
+                  <span class="resume-value" id="paiementNombreColis">-</span>
+                </div>
+                <div class="resume-item total">
+                  <span class="resume-label">Montant à payer:</span>
+                  <span class="resume-value montant-highlight" id="paiementMontant">0 DA</span>
+                </div>
+              </div>
+
+              <div class="alert alert-info" style="margin-top: 20px;">
+                <ion-icon name="information-circle"></ion-icon>
+                <div>
+                  <strong>Attention:</strong> Ce paiement concernera tous les colis livrés de ce commerçant.
+                  Assurez-vous d'avoir vérifié les montants avant de confirmer.
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" onclick="annulerPaiement()">
+                <ion-icon name="close-circle-outline"></ion-icon>
+                Annuler
+              </button>
+              <button type="button" class="btn btn-success" onclick="confirmerPaiement()">
+                <ion-icon name="checkmark-circle"></ion-icon>
+                Confirmer le paiement
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SECTION CAISSE AGENT ==================== -->
+      <section id="caisse-agent" class="page">
+        <!-- Header -->
+        <div class="commercants-header">
+          <div class="header-content">
+            <div class="header-title-group">
+              <div class="title-icon-wrapper">
+                <ion-icon name="wallet"></ion-icon>
+              </div>
+              <div>
+                <h1>Ma Caisse</h1>
+                <p class="header-subtitle">Consultez votre solde et transactions</p>
+              </div>
+            </div>
+            <button id="btnActualiserCaisse" class="btn-modern btn-primary">
+              <ion-icon name="refresh"></ion-icon>
+              <span>Actualiser</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Statistiques -->
+        <div class="stats-modern-grid">
+          <div class="stat-modern-card card-green">
+            <div class="stat-modern-icon">
+              <ion-icon name="wallet"></ion-icon>
+            </div>
+            <div class="stat-modern-content">
+              <p class="stat-modern-label">Solde Total</p>
+              <h2 class="stat-modern-value" id="soldeCaisse">0 DA</h2>
+              <span class="stat-modern-badge">Disponible</span>
+            </div>
+          </div>
+
+          <div class="stat-modern-card card-blue">
+            <div class="stat-modern-icon">
+              <ion-icon name="arrow-up"></ion-icon>
+            </div>
+            <div class="stat-modern-content">
+              <p class="stat-modern-label">Entrées</p>
+              <h2 class="stat-modern-value" id="totalEntrees">0 DA</h2>
+              <span class="stat-modern-badge">Ce mois</span>
+            </div>
+          </div>
+
+          <div class="stat-modern-card card-orange">
+            <div class="stat-modern-icon">
+              <ion-icon name="arrow-down"></ion-icon>
+            </div>
+            <div class="stat-modern-content">
+              <p class="stat-modern-label">Sorties</p>
+              <h2 class="stat-modern-value" id="totalSorties">0 DA</h2>
+              <span class="stat-modern-badge">Ce mois</span>
+            </div>
+          </div>
+
+          <div class="stat-modern-card card-purple">
+            <div class="stat-modern-icon">
+              <ion-icon name="receipt"></ion-icon>
+            </div>
+            <div class="stat-modern-content">
+              <p class="stat-modern-label">Transactions</p>
+              <h2 class="stat-modern-value" id="nbTransactions">0</h2>
+              <span class="stat-modern-badge">Total</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tableau -->
+        <div class="modern-table-container" style="margin-top: 30px;">
+          <div style="padding: 20px; border-bottom: 1px solid #dee2e6; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <h3 style="margin: 0; color: white; display: flex; align-items: center; gap: 10px;">
+              <ion-icon name="time"></ion-icon>
+              Historique des Transactions
+            </h3>
+          </div>
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Montant</th>
+                <th>Statut</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody id="transactionsCaisseBody">
+              <tr>
+                <td colspan="5" style="text-align: center; padding: 2rem; color: #999;">
+                  <ion-icon name="receipt-outline" style="font-size: 48px; opacity: 0.3;"></ion-icon>
+                  <p>Chargement des transactions...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section Gestion des Retours -->
+      <!-- ==================== SECTION RETOURS ==================== -->
+      <section id="retours" class="page">
+        <div class="colis-container">
+          <!-- Statistiques principales -->
+          <div class="main-stats">
+            <div class="stats-card danger">
+              <i class="fas fa-undo"></i>
+              <div class="stats-info">
+                <h3>Total Retours</h3>
+                <p id="totalRetours">0</p>
+              </div>
+            </div>
+            <div class="stats-card warning">
+              <i class="fas fa-exclamation-circle"></i>
+              <div class="stats-info">
+                <h3>En Attente</h3>
+                <p id="retoursAttente">0</p>
+              </div>
+            </div>
+            <div class="stats-card info">
+              <i class="fas fa-check-circle"></i>
+              <div class="stats-info">
+                <h3>Traités</h3>
+                <p id="retoursTraites">0</p>
+              </div>
+            </div>
+            <div class="stats-card success">
+              <i class="fas fa-calendar-day"></i>
+              <div class="stats-info">
+                <h3>Aujourd'hui</h3>
+                <p id="retoursToday">0</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Barre d'outils principale -->
+          <div class="main-toolbar">
+            <div class="left-tools">
+              <button id="scanRetourBtn" class="tool-btn scan">
+                <i class="fas fa-qrcode"></i>
+                Scanner pour Retour
+              </button>
+              <button id="exportRetoursBtn" class="tool-btn export">
+                <i class="fas fa-file-export"></i>
+                Exporter
+              </button>
+            </div>
+            <div class="right-tools">
+              <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="retoursSearchInput" placeholder="Rechercher un retour..."/>
+              </div>
+            </div>
+          </div>
+
+          <!-- Zone de scan -->
+          <div id="scanRetourZone" class="scan-zone" style="display:none;">
+            <div class="scan-container">
+              <div class="scan-header">
+                <h3><i class="fas fa-qrcode"></i> Scanner un colis pour le marquer en retour</h3>
+                <p>Scannez le QR code du colis à retourner ou entrez le code manuellement</p>
+              </div>
+              
+              <!-- Saisie manuelle -->
+              <div class="manual-input-section">
+                <label for="manualRetourInput">
+                  <i class="fas fa-keyboard"></i> Saisie manuelle du code
+                </label>
+                <div class="input-with-btn">
+                  <input 
+                    type="text" 
+                    id="manualRetourInput" 
+                    placeholder="Entrez le code de suivi du colis..."
+                    class="manual-input">
+                  <button id="submitManualRetour" class="btn-submit-manual">
+                    <i class="fas fa-check"></i> Valider
+                  </button>
+                </div>
+              </div>
+
+              <div class="separator">
+                <span>OU</span>
+              </div>
+
+              <!-- Scanner QR -->
+              <div id="qr-reader-retour"></div>
+              
+              <button id="closeScanRetour" class="tool-btn close">
+                <i class="fas fa-times"></i>
+                Fermer
+              </button>
+            </div>
+          </div>
+
+          <!-- Filtres avancés -->
+          <div class="filters-section">
+            <div class="filter-group">
+              <label>Date</label>
+              <select id="filterDateRetour">
+                <option value="all">Toutes les dates</option>
+                <option value="today">Aujourd'hui</option>
+                <option value="week">Cette semaine</option>
+                <option value="month">Ce mois</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Motif</label>
+              <select id="filterMotifRetour">
+                <option value="all">Tous les motifs</option>
+                <option value="absent">Client absent</option>
+                <option value="refuse">Refus du colis</option>
+                <option value="adresse">Adresse incorrecte</option>
+                <option value="endommagé">Colis endommagé</option>
+                <option value="autre">Autre</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Wilaya</label>
+              <select id="filterWilayaRetour">
+                <option value="all">Toutes les wilayas</option>
+              </select>
+            </div>
+            <button id="resetFiltersRetour" class="tool-btn">
+              <i class="fas fa-redo"></i>
+              Réinitialiser
+            </button>
+          </div>
+
+          <!-- Tableau des retours -->
+          <div class="table-wrapper">
+            <table class="modern-table" id="retoursTable">
+              <thead>
+                <tr>
+                  <th>
+                    <input type="checkbox" id="selectAllRetours">
+                  </th>
+                  <th>Code Suivi</th>
+                  <th>Expéditeur</th>
+                  <th>Destinataire</th>
+                  <th>Wilaya</th>
+                  <th>Motif Retour</th>
+                  <th>Date Retour</th>
+                  <th>Montant (DA)</th>
+                  <th>Statut</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="retoursTableBody">
+                <!-- Les retours seront ajoutés ici dynamiquement -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SECTION LIVRAISONS ==================== -->
+      <section id="livraison-clients" class="page">
+        <div class="colis-container">
+          <!-- Statistiques principales -->
+          <div class="main-stats">
+            <div class="stats-card warning">
+              <i class="fas fa-truck"></i>
+              <div class="stats-info">
+                <h3>Total En Livraison</h3>
+                <p id="totalLivraisons">0</p>
+              </div>
+            </div>
+            <div class="stats-card primary">
+              <i class="fas fa-calendar-day"></i>
+              <div class="stats-info">
+                <h3>Sorties Aujourd'hui</h3>
+                <p id="livraisonsToday">0</p>
+              </div>
+            </div>
+            <div class="stats-card info">
+              <i class="fas fa-coins"></i>
+              <div class="stats-info">
+                <h3>Montant Total</h3>
+                <p id="montantLivraisons">0 DA</p>
+              </div>
+            </div>
+            <div class="stats-card warning">
+              <i class="fas fa-truck"></i>
+              <div class="stats-info">
+                <h3>Cette Semaine</h3>
+                <p id="livraisonsSemaine">0</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Barre d'outils principale -->
+          <div class="main-toolbar">
+            <div class="left-tools">
+              <button id="scanLivraisonBtn" class="tool-btn scan">
+                <i class="fas fa-qrcode"></i>
+                Scanner pour Sortie
+              </button>
+              <button id="exportLivraisonsBtn" class="tool-btn export">
+                <i class="fas fa-file-export"></i>
+                Exporter
+              </button>
+            </div>
+            <div class="right-tools">
+              <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="livraisonsSearchInput" placeholder="Rechercher une livraison..."/>
+              </div>
+            </div>
+          </div>
+
+          <!-- Zone de scan -->
+          <div id="scanLivraisonZone" class="scan-zone" style="display:none;">
+            <div class="scan-container">
+              <div class="scan-header">
+                <h3><i class="fas fa-truck"></i> Scanner un colis pour le sortir en livraison</h3>
+                <p>Scannez le QR code du colis ou entrez le code manuellement</p>
+              </div>
+              
+              <!-- Saisie manuelle -->
+              <div class="manual-input-section">
+                <label for="manualLivraisonInput">
+                  <i class="fas fa-keyboard"></i> Saisie manuelle du code
+                </label>
+                <div class="input-with-btn">
+                  <input 
+                    type="text" 
+                    id="manualLivraisonInput" 
+                    placeholder="Entrez le code de suivi du colis..."
+                    class="manual-input">
+                  <button id="submitManualLivraison" class="btn-submit-manual">
+                    <i class="fas fa-check"></i> Valider
+                  </button>
+                </div>
+              </div>
+
+              <div class="separator">
+                <span>OU</span>
+              </div>
+
+              <!-- Scanner QR -->
+              <div id="qr-reader-livraison"></div>
+              
+              <button id="closeScanLivraison" class="tool-btn close">
+                <i class="fas fa-times"></i>
+                Fermer
+              </button>
+            </div>
+          </div>
+
+          <!-- Filtres avancés -->
+          <div class="filters-section">
+            <div class="filter-group">
+              <label>Date</label>
+              <input type="date" id="filterDateLivraison" class="filter-input">
+            </div>
+            <div class="filter-group">
+              <label>Wilaya</label>
+              <select id="filterWilayaLivraison">
+                <option value="">Toutes les wilayas</option>
+              </select>
+            </div>
+            <button id="resetFiltersLivraison" class="tool-btn">
+              <i class="fas fa-redo"></i>
+              Réinitialiser
+            </button>
+          </div>
+
+          <!-- Tableau des livraisons -->
+          <div class="table-wrapper">
+            <table class="modern-table" id="livraisonsTable">
+              <thead>
+                <tr>
+                  <th>
+                    <input type="checkbox" id="selectAllLivraisons">
+                  </th>
+                  <th>Code Suivi</th>
+                  <th>Expéditeur</th>
+                  <th>Destinataire</th>
+                  <th>Wilaya</th>
+                  <th>Date Sortie</th>
+                  <th>Montant (DA)</th>
+                  <th>Statut</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="livraisonsTableBody">
+                <!-- Les livraisons seront ajoutées ici dynamiquement -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section Gestion des Réclamations -->
+      <section id="reclamation" class="page">
+        <div class="reclamation-container">
+          <!-- Statistiques principales -->
+          <div class="stats-header">
+            <div class="stats-card warning">
+              <i class="fas fa-exclamation-triangle"></i>
+              <div class="stats-info">
+                <h3>Total Réclamations</h3>
+                <p id="totalReclamations">0</p>
+              </div>
+            </div>
+            <div class="stats-card danger">
+              <i class="fas fa-clock"></i>
+              <div class="stats-info">
+                <h3>En Attente</h3>
+                <p id="reclamationsEnAttente">0</p>
+              </div>
+            </div>
+            <div class="stats-card success">
+              <i class="fas fa-check-circle"></i>
+              <div class="stats-info">
+                <h3>Résolues</h3>
+                <p id="reclamationsResolues">0</p>
+              </div>
+            </div>
+            <div class="stats-card info">
+              <i class="fas fa-history"></i>
+              <div class="stats-info">
+                <h3>Délai Moyen</h3>
+                <p id="delaiMoyenReclamation">0h</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Barre d'outils principale -->
+          <div class="main-toolbar">
+            <div class="left-tools">
+              <button id="addReclamationBtn" class="tool-btn add">
+                <i class="fas fa-plus"></i>
+                Nouvelle Réclamation
+              </button>
+              <button id="importReclamationBtn" class="tool-btn import">
+                <i class="fas fa-file-import"></i>
+                Importer
+              </button>
+              <button id="exportReclamations" class="tool-btn export">
+                <i class="fas fa-file-export"></i>
+                Exporter
+              </button>
+            </div>
+            <div class="right-tools">
+              <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="reclamationSearchInput" placeholder="Rechercher une réclamation..."/>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filtres avancés -->
+          <div class="filters-section">
+            <div class="filter-group">
+              <label>Date</label>
+              <select id="filterDateReclamation">
+                <option value="">Toutes les dates</option>
+                <option value="today">Aujourd'hui</option>
+                <option value="week">Cette semaine</option>
+                <option value="month">Ce mois</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Type</label>
+              <select id="filterTypeReclamation">
+                <option value="">Tous les types</option>
+                <option value="retard">Retard de livraison</option>
+                <option value="comportement">Comportement livreur</option>
+                <option value="perte">Perte colis</option>
+                <option value="damage">Colis endommagé</option>
+                <option value="autre">Autre</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Statut</label>
+              <select id="filterStatutReclamation">
+                <option value="">Tous les statuts</option>
+                <option value="nouvelle">Nouvelle</option>
+                <option value="enCours">En traitement</option>
+                <option value="resolue">Résolue</option>
+                <option value="fermee">Fermée</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Priorité</label>
+              <select id="filterPrioriteReclamation">
+                <option value="">Toutes les priorités</option>
+                <option value="haute">Haute</option>
+                <option value="moyenne">Moyenne</option>
+                <option value="basse">Basse</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Tableau des réclamations -->
+          <div class="table-responsive">
+            <table id="reclamationTable" class="modern-table">
+              <thead>
+                <tr>
+                  <th><input type="checkbox" id="selectAllReclamations"/></th>
+                  <th>N° Réclamation</th>
+                  <th>Date</th>
+                  <th>Code Colis</th>
+                  <th>Client</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                  <th>Priorité</th>
+                  <th>Assigné à</th>
+                  <th>Statut</th>
+                  <th>Dernière MAJ</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Les données seront ajoutées dynamiquement -->
+              </tbody>
+            </table>
+          </div>        <!-- Pagination -->
+        <div class="pagination">
+          <div class="pagination-info">
+            Affichage de <span id="startEntryReclamations">1</span> à <span id="endEntryReclamations">10</span> sur <span id="totalEntriesReclamations">0</span> entrées
+          </div>
+          <div class="pagination-controls">
+            <button class="btn-page" id="prevPageReclamations" disabled><i class="fas fa-chevron-left"></i></button>
+            <div class="page-numbers">
+              <!-- Les numéros de page seront ajoutés dynamiquement -->
+            </div>
+            <button class="btn-page" id="nextPageReclamations"><i class="fas fa-chevron-right"></i></button>
+          </div>
+          <div class="entries-per-page">
+            <select id="entriesPerPageReclamations">
+              <option value="10">10 par page</option>
+              <option value="25">25 par page</option>
+              <option value="50">50 par page</option>
+              <option value="100">100 par page</option>
+            </select>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+  <!-- Scripts JavaScript avec chemins absolus -->
+  <!-- Scripts externes -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.10/html5-qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  
+  <!-- Script du ticket -->
+  <script src="/dashboards/ticket.js"></script>
+  
+  <!-- Script de test -->
+  <script src="/dashboards/agent/init.js"></script>
+  
+  <!-- Scripts de l'application -->
+  <script type="module" src="/dashboards/agent/js/selection-manager.js"></script>
+  <!-- DÉSACTIVÉ - Remplacé par colis-form-handler.js (shared) qui gère admin/agent/commercant -->
+  <!-- <script type="module" src="/dashboards/agent/js/colis-form.js"></script> -->
+  <script src="/dashboards/agent/js/colis-scanner-manager.js"></script>
+  <script src="/dashboards/agent/js/retours-manager.js"></script>
+  <script src="/dashboards/agent/js/livraisons-manager.js"></script>
+  <script src="/dashboards/agent/js/commercants-manager.js"></script>
+  <script src="/dashboards/agent/js/paiement-commercant.js"></script>
+  
+  <!-- 📊 Dashboard Statistics -->
+  <script src="/dashboards/agent/js/dashboard-stats.js"></script>
+  
+  <!-- Initialisation des gestionnaires -->
+  <script>
+    // Instancier les gestionnaires quand le DOM est prêt
+    document.addEventListener('DOMContentLoaded', () => {
+      // Attendre un peu que les autres scripts soient chargés
+      setTimeout(() => {
+        console.log('🔄 Initialisation des gestionnaires de filtres...');
+        
+        // Instancier les gestionnaires si les classes existent
+        if (typeof RetoursManager !== 'undefined') {
+          window.retoursManager = new RetoursManager();
+          console.log('✅ RetoursManager initialisé');
+        }
+        
+        if (typeof LivraisonsManager !== 'undefined') {
+          window.livraisonsManager = new LivraisonsManager();
+          console.log('✅ LivraisonsManager initialisé');
+        }
+        
+        // CommercantManager n'est pas une classe, juste un script DOMContentLoaded
+        console.log('✅ commercants-manager.js se charge automatiquement');
+      }, 500);
+    });
+  </script>
+  
+  <!-- Fonction de déconnexion AGENT -->
+  <script type="module">
+    import AuthService from '../auth-service.js';
+    
+    window.logoutAgent = function(event) {
+      event.preventDefault();
+      
+      if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+        console.log('🚪 Déconnexion de l\'agent...');
+        
+        // ✅ Utiliser AuthService pour déconnexion propre
+        AuthService.logout();
+        
+        // Redirection vers la page de connexion
+        window.location.href = '../../login.html';
+      }
+    };
+  </script>
+  
+  <!-- Caisse API - Nouvelle intégration -->
+  <script src="../shared/js/caisse-api.js"></script>
+  
+  <script type="module">
+    import AuthService from '../auth-service.js';
+    import { CONFIG } from './config.js';
+    import { Utils } from './utils.js';
+    import { DataStore } from './data-store.js';
+    // import { NavigationManager } from './nav-manager.js'; // ⚠️ Désactivé - conflit avec PageManager
+    import { PageManager } from './page-manager.js';
+    import { ModalManager } from './modal-manager.js';
+    // import { ScannerManager } from './scanner-manager.js'; // ⚠️ Désactivé - Remplacé par colis-scanner-manager.js
+
+    // 🔐 Rendre AuthService disponible globalement
+    window.AuthService = AuthService;
+
+    // Initialisation globale
+    window.addEventListener('DOMContentLoaded', async () => {
+      console.log('Initialisation des modules...');
+      
+      // 🔐 VÉRIFICATION DE L'AUTHENTIFICATION
+      console.log('🔐 Vérification de l\'authentification...');
+      const user = await AuthService.checkAuth();
+      
+      if (!user) {
+        console.error('❌ Non authentifié - Redirection vers login');
+        return; // checkAuth redirige automatiquement
+      }
+      
+      console.log('✅ Utilisateur authentifié:', user);
+      
+      // 🌍 Rendre l'utilisateur disponible globalement
+      window.currentUser = user;
+      
+      // Charger les informations de l'agence connectée
+      const loadAgenceInfo = async () => {
+        const agenceNomEl = document.getElementById('agenceNom');
+        const agenceWilayaEl = document.getElementById('agenceWilaya');
+        
+        // ✅ Utiliser les données de l'utilisateur récupérées depuis l'API
+        if (user && user.nom) {
+          agenceNomEl.textContent = user.nom;
+          
+          // Vérifier si l'agence est disponible
+          if (user.agence) {
+            try {
+              let agenceData = null;
+              
+              // ✅ Vérifier si user.agence est déjà un objet (populate) ou juste un ID
+              if (typeof user.agence === 'object' && user.agence.nom) {
+                // L'agence est déjà populée par /auth/me
+                console.log('✅ Agence déjà populée:', user.agence);
+                agenceData = { success: true, data: user.agence };
+              } else {
+                // L'agence est un ID, on doit la récupérer
+                console.log('🔍 Récupération de l\'agence:', user.agence);
+                agenceData = await AuthService.fetchWithAuth(`http://localhost:1000/api/agences/${user.agence}`);
+              }
+              
+              if (agenceData && agenceData.success && agenceData.data) {
+                const wilayaText = agenceData.data.wilayaText || agenceData.data.wilaya || 'N/A';
+                console.log('📍 Wilaya affichée:', wilayaText);
+                agenceWilayaEl.innerHTML = `<ion-icon name="location-outline" style="vertical-align: middle; margin-right: 4px;"></ion-icon> ${wilayaText}`;
+              } else {
+                console.warn('⚠️ Données agence invalides:', agenceData);
+                agenceWilayaEl.innerHTML = '<ion-icon name="location-outline" style="vertical-align: middle; margin-right: 4px;"></ion-icon> Wilaya non disponible';
+              }
+            } catch (err) {
+              console.error('❌ Erreur chargement agence:', err);
+              agenceWilayaEl.innerHTML = '<ion-icon name="location-outline" style="vertical-align: middle; margin-right: 4px;"></ion-icon> Wilaya non disponible';
+            }
+          } else {
+            console.warn('⚠️ Pas d\'agence associée à l\'utilisateur');
+            agenceWilayaEl.textContent = '';
+          }
+        } else {
+          agenceNomEl.textContent = 'Agent';
+          agenceWilayaEl.textContent = 'Non connecté';
+        }
+      };
+      
+      // Charger les infos au démarrage
+      await loadAgenceInfo();
+      
+      try {
+        console.log('Démarrage de l\'initialisation...');
+        
+        // Rendre les modules disponibles globalement
+        window.CONFIG = CONFIG;
+        window.Utils = Utils;
+        window.DataStore = DataStore;
+        
+        // Initialiser d'abord le DataStore
+        console.log('Initialisation du DataStore...');
+        DataStore.init();
+        
+        // 📦 CHARGER LES COLIS AU DÉMARRAGE
+        console.log('📦 Chargement des colis...');
+        await DataStore.loadColis();
+        console.log('✅ Colis chargés');
+        
+        // Initialiser les gestionnaires
+        console.log('Initialisation des gestionnaires...');
+        // ⚠️ NavigationManager désactivé car conflit avec PageManager
+        // const navManager = new NavigationManager();
+        // navManager.init();
+        
+        // ✅ S'assurer que le DOM est prêt avant d'initialiser PageManager
+        await new Promise(resolve => setTimeout(resolve, 100));
+        console.log('🔄 Initialisation du PageManager...');
+        PageManager.init();
+        
+        ModalManager.init();
+        
+        // ⚠️ ScannerManager désactivé - Remplacé par colis-scanner-manager.js
+        // const scannerManager = new ScannerManager();
+        // scannerManager.init();
+        
+        // Initialiser le TableManager en dernier
+        console.log('Initialisation du TableManager...');
+        import('./table-manager.js').then(module => {
+            window.TableManager = module.TableManager;
+            window.TableManager.init();
+            console.log('TableManager initialisé');
+        });
+        
+        // Configuration du champ de scan
+        const scanInput = document.getElementById('scanInput');
+        if (scanInput) {
+            let isScanning = false;
+            
+            // Gestionnaire d'entrée pour le scan
+            scanInput.addEventListener('input', (e) => {
+                if (!isScanning) return;
+                
+                const value = e.target.value;
+                
+                // Si le code est complet (généralement terminé par un retour chariot)
+                if (value.includes('\n') || value.includes('\r')) {
+                    const cleanValue = value.replace(/[\n\r]/g, '');
+                    console.log('Code-barre scanné:', cleanValue);
+                    
+                    // Ouvrir la modale d'ajout de colis
+                    const modal = document.getElementById('colisModal');
+                    if (modal) {
+                        modal.style.display = 'flex';
+                        
+                        // Remplir le champ de référence
+                        const refInput = modal.querySelector('#colisRef');
+                        if (refInput) {
+                            refInput.value = cleanValue;
+                        }
+                    }
+                    
+                    // Réinitialiser le champ de scan
+                    scanInput.value = '';
+                    isScanning = false;
+                    scanInput.blur();
+                }
+            });
+
+            // Activer le scan uniquement lors du focus
+            scanInput.addEventListener('focus', () => {
+                console.log('Scan activé');
+                isScanning = true;
+                scanInput.placeholder = 'Scanner maintenant...';
+                scanInput.classList.add('scanning');
+            });
+
+            scanInput.addEventListener('blur', () => {
+                console.log('Scan désactivé');
+                isScanning = false;
+                scanInput.placeholder = 'Cliquer pour scanner...';
+                scanInput.classList.remove('scanning');
+            });
+        }
+        
+        console.log('Tous les modules sont initialisés');
+      } catch (error) {
+        console.error('Erreur lors de l\'initialisation:', error);
+      }
+    });
+  </script>
+  <!-- Ticket de colis imprimable -->
+  <div id="ticketColisPrint" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div class="ticket-wrapper">
+      <!-- Date et heure en haut -->
+      <div class="ticket-date-header" id="ticket-ticketDateHeader"></div>
+      
+      <!-- En-tête avec logo et infos à droite -->
+      <div class="ticket-header">
+        <div class="header-left">
+          <img src="../../logo.png" alt="Logo" class="header-logo"/>
+        </div>
+        <div class="header-right">
+          <div class="wilaya-info" style="border: 1px solid #000; padding: 0.1cm;">
+            <div class="ticket-number" id="ticket-ticketNumber">2</div>
+            <div id="ticket-destWilayaHeader"></div>
+            <div id="ticket-destCodeHeader"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section Expéditeur -->
+      <div class="info-section">
+        <div class="section-title-simple">Expéditeur</div>
+        <p><strong>Nom :</strong> <span id="ticket-expName"></span></p>
+        <p><strong>Téléphone :</strong> <span id="ticket-expPhone"></span></p>
+        <p><strong>Wilaya :</strong> <span id="ticket-expWilaya"></span></p>
+      </div>
+
+      <!-- Section Destinataire -->
+      <div class="info-section">
+        <div class="section-title-simple">Destinataire</div>
+        <p><strong>Nom :</strong> <span id="ticket-destName"></span></p>
+        <p><strong>Numero de téléhone :</strong> <span id="ticket-destPhone"></span></p>
+        <p><strong>Wilaya :</strong> <span id="ticket-destWilaya"></span></p>
+      </div>
+
+      <!-- Détails du colis -->
+      <div class="info-section details-section">
+        <p><strong>Contenu du colis:</strong> <span id="ticket-colisContent"></span></p>
+        <p><strong>Type de colis:</strong> <span id="ticket-colisType"></span></p>
+        <p><strong>Type de livraison:</strong> <span id="ticket-colisService"></span></p>
+        <p><strong>Wilaya:</strong> <span id="ticket-colisWilayaExp"></span></p>
+        <p><strong>Adresse de Livraison:</strong> <span id="ticket-destAddress"></span></p>
+        <p><strong>Prix du colis:</strong> <span id="ticket-colisPrix"></span></p>
+        <p><strong>Frais de livraison:</strong> <span id="ticket-colisFrais"></span></p>
+        <p><strong>Recouvrement:</strong> <span id="ticket-colisAmount"></span></p>
+        <p><strong>Poids:</strong> <span id="ticket-colisWeight"></span></p>
+        <p><strong>Date de d'expédition:</strong> <span id="ticket-orderDate"></span></p>
+      </div>
+      
+      <!-- Element caché pour trackingNumber (utilisé par JS) -->
+      <span id="ticket-trackingNumber" style="display:none;"></span>
+
+      <!-- Assurance -->
+      <div class="info-section">
+        <p><strong>Assurance:</strong> Utilisez la plateforme pour voir l'état de l'assurance</p>
+      </div>
+
+      <!-- Code-barres -->
+      <div class="barcode-section">
+        <svg id="ticket-barcode"></svg>
+        <div class="barcode-text"># <span id="ticket-trackingBarcode"></span></div>
+      </div>
+
+      <!-- Référence avec # et Déclaration en arabe -->
+      <div class="declaration-ar">
+        <p>انا المرسل، أصرح بأن جميع المعلومات الواردة في قسيمة الشحن صحيحة، و أؤكد أن الطرد لا يحتوي على أي مواد خطرة أو محضورة وممنوعة قانونًيا وذلك رفقا لما هو منصوص عليه في الشروط العامة للنقل كما أقر بأنني قرأت ووافقت على الشروط العامة للنقل الخاصة <span id="ticket-agencyNameAr">AMIRANE EXPRESS</span> بشركة للبريد السريع.</p>
+      </div>
+
+      <!-- Signature -->
+      <div class="signature-section">
+        <p class="sig-date">le: <span id="ticket-signatureDate"></span></p>
+        <p class="sig-label">Signature</p>
+        <div class="signature-line"></div>
+      </div>
+    </div>
+    
+    <div class="no-print">
+      <button onclick="window.print()" class="print-btn">Imprimer</button>
+      <button onclick="document.getElementById('ticketColisPrint').style.display='none'" class="close-btn">Fermer</button>
+    </div>
+  </div>
+  
+  <!-- 🎯 Gestionnaire de Formulaire Colis -->
+  <script src="../shared/js/colis-form-handler.js"></script>
+  <script>
+    // Initialiser le gestionnaire pour Agent
+    let colisFormHandler;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🚀 Initialisation du gestionnaire de formulaire colis pour AGENT');
+      colisFormHandler = new ColisFormHandler('agent');
+      
+      // Gérer la soumission du formulaire
+      const colisForm = document.getElementById('colisForm');
+      if (colisForm) {
+        colisForm.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          
+          const formData = {
+            nomExpediteur: document.getElementById('nomExpediteur').value,
+            telExpediteur: document.getElementById('telExpediteur').value,
+            bureauSource: document.getElementById('bureauSource').value,
+            typeLivraison: document.getElementById('typelivraison').value, // ✅ Corrigé: typeLivraison au lieu de typelivraison
+            poidsColis: document.getElementById('poidsColis').value,
+            prixColis: document.getElementById('prixColis').value,
+            contenu: document.getElementById('contenu').value,
+            typeColis: document.getElementById('typeColis').value,
+            description: document.getElementById('description').value,
+            nomClient: document.getElementById('nomClient').value,
+            telClient: document.getElementById('telClient').value,
+            telSecondaire: document.getElementById('telSecondaire').value,
+            wilayaDest: document.getElementById('wilayaDest').value
+          };
+          
+          // Ajouter bureau ou adresse selon le type
+          if (formData.typeLivraison === 'bureau') {
+            formData.bureauDest = document.getElementById('bureauDest').value;
+          } else {
+            formData.adresseLivraison = document.getElementById('adresseLivraison').value;
+          }
+          
+          try {
+            await colisFormHandler.submitForm(formData);
+            
+            // Fermer le modal et réinitialiser
+            document.getElementById('colisModal').style.display = 'none';
+            colisFormHandler.resetForm();
+            
+            // 📦 Recharger la liste des colis depuis l'API
+            console.log('🔄 Rechargement des colis...');
+            await DataStore.loadColis();
+          } catch (error) {
+            console.error('❌ Erreur lors de la soumission:', error);
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

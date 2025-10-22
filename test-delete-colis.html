@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Suppression Colis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover { background: #c82333; }
+        .success { color: green; }
+        .error { color: red; }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        #colisListe {
+            margin-top: 20px;
+        }
+        .colis-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #e9ecef;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn-delete-colis {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .btn-delete-colis:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗑️ Test Suppression Colis Admin</h1>
+        
+        <div class="section">
+            <h3>1️⃣ Token Admin</h3>
+            <input type="text" id="adminToken" placeholder="Token admin" style="width: 500px;">
+            <button onclick="saveToken()">Sauvegarder Token</button>
+            <p id="tokenStatus"></p>
+        </div>
+
+        <div class="section">
+            <h3>2️⃣ Charger les Colis</h3>
+            <button onclick="loadColis()">📦 Charger les colis</button>
+            <div id="colisListe"></div>
+        </div>
+
+        <div class="section">
+            <h3>3️⃣ Suppression Manuelle</h3>
+            <input type="text" id="colisId" placeholder="ID du colis à supprimer">
+            <button onclick="deleteColis()">🗑️ Supprimer</button>
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:1000/api';
+        
+        function saveToken() {
+            const token = document.getElementById('adminToken').value;
+            if (token) {
+                localStorage.setItem('admin_token', token);
+                document.getElementById('tokenStatus').innerHTML = '<span class="success">✅ Token sauvegardé</span>';
+                console.log('Token sauvegardé:', token.substring(0, 20) + '...');
+            } else {
+                document.getElementById('tokenStatus').innerHTML = '<span class="error">❌ Token vide</span>';
+            }
+        }
+
+        async function loadColis() {
+            const token = localStorage.getItem('admin_token');
+            if (!token) {
+                showResult('❌ Aucun token trouvé. Veuillez d\'abord sauvegarder un token.', false);
+                return;
+            }
+
+            try {
+                console.log('📡 Chargement des colis...');
+                const response = await fetch(`${API_URL}/colis`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                console.log('Status:', response.status);
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Erreur HTTP');
+                }
+
+                const result = await response.json();
+                console.log('Résultat:', result);
+
+                const colis = result.data || result.colis || [];
+                
+                if (colis.length === 0) {
+                    document.getElementById('colisListe').innerHTML = '<p>Aucun colis trouvé</p>';
+                    return;
+                }
+
+                const html = colis.map(c => `
+                    <div class="colis-item">
+                        <div>
+                            <strong>${c.tracking || c.reference || c._id}</strong>
+                            - ${c.expediteur?.nom || 'N/A'} → ${c.destinataire?.nom || 'N/A'}
+                            <br>
+                            <small>ID: ${c._id}</small>
+                        </div>
+                        <button class="btn-delete-colis" onclick="deleteColisById('${c._id}')">
+                            🗑️ Supprimer
+                        </button>
+                    </div>
+                `).join('');
+
+                document.getElementById('colisListe').innerHTML = html;
+                showResult(`✅ ${colis.length} colis chargés`, true);
+
+            } catch (error) {
+                console.error('❌ Erreur:', error);
+                showResult(`❌ Erreur: ${error.message}`, false);
+            }
+        }
+
+        async function deleteColis() {
+            const id = document.getElementById('colisId').value;
+            if (!id) {
+                showResult('❌ Veuillez entrer un ID de colis', false);
+                return;
+            }
+            await deleteColisById(id);
+        }
+
+        async function deleteColisById(id) {
+            const token = localStorage.getItem('admin_token');
+            if (!token) {
+                showResult('❌ Aucun token trouvé', false);
+                return;
+            }
+
+            if (!confirm(`⚠️ Confirmer la suppression du colis ${id} ?`)) {
+                return;
+            }
+
+            try {
+                console.log('🗑️ Suppression du colis:', id);
+                console.log('🔑 Token:', token.substring(0, 20) + '...');
+
+                const response = await fetch(`${API_URL}/colis/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log('Status:', response.status);
+                const result = await response.json();
+                console.log('Résultat:', result);
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Erreur HTTP');
+                }
+
+                showResult(`✅ Colis ${id} supprimé avec succès !`, true);
+                
+                // Recharger la liste
+                setTimeout(() => loadColis(), 1000);
+
+            } catch (error) {
+                console.error('❌ Erreur:', error);
+                showResult(`❌ Erreur: ${error.message}`, false);
+            }
+        }
+
+        function showResult(message, success) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = success ? 'success' : 'error';
+            resultDiv.style.background = success ? '#d4edda' : '#f8d7da';
+            resultDiv.style.border = success ? '1px solid #c3e6cb' : '1px solid #f5c6cb';
+            resultDiv.textContent = message;
+        }
+
+        // Charger le token au démarrage
+        window.onload = function() {
+            const token = localStorage.getItem('admin_token');
+            if (token) {
+                document.getElementById('adminToken').value = token;
+                document.getElementById('tokenStatus').innerHTML = '<span class="success">✅ Token chargé depuis localStorage</span>';
+            }
+        };
+    </script>
+</body>
+</html>

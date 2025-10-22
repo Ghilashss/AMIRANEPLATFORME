@@ -1,0 +1,216 @@
+/* ===== Styles pour la section Livraison (FreeDeLiv Style) ===== */
+.livraison-container {
+  padding: 20px;
+  background: #f8f9fa;
+}
+
+/* Stats Cards */
+.livraison-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.stats-card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: transform 0.2s;
+}
+
+.stats-card:hover {
+  transform: translateY(-3px);
+}
+
+.stats-card i {
+  font-size: 2.5rem;
+  margin-right: 20px;
+  opacity: 0.8;
+}
+
+.stats-card.success i { color: #28a745; }
+.stats-card.info i { color: #17a2b8; }
+.stats-card.warning i { color: #ffc107; }
+.stats-card.danger i { color: #dc3545; }
+
+.stats-info h3 {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin: 0;
+}
+
+.stats-info p {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #343a40;
+  margin: 5px 0 0;
+}
+
+/* Toolbar */
+.livraison-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.left-tools {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+  color: #495057;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.tool-btn i {
+  font-size: 16px;
+}
+
+.tool-btn.add { background: #28a745; color: white; }
+.tool-btn.import { background: #6c757d; color: white; }
+.tool-btn.export { background: #6c757d; color: white; }
+.tool-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+/* Liste des livraisons */
+.livraison-list {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.livraison-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #dee2e6;
+  transition: background-color 0.2s;
+}
+
+.livraison-item:last-child {
+  border-bottom: none;
+}
+
+.livraison-item:hover {
+  background-color: #f8f9fa;
+}
+
+.livraison-status {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.livraison-status.pending { background: #fff3cd; color: #856404; }
+.livraison-status.delivered { background: #d4edda; color: #155724; }
+.livraison-status.failed { background: #f8d7da; color: #721c24; }
+.livraison-container {
+    padding: 20px;
+}
+
+.livraison-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: var(--white);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.livraison-map {
+    background: var(--white);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+    height: 400px;
+}
+
+.livreur-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.livreur-card {
+    background: var(--white);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    display: flex;
+    gap: 15px;
+}
+
+.livreur-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.livreur-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.livreur-info {
+    flex: 1;
+}
+
+.livreur-info h3 {
+    margin: 0 0 5px 0;
+    color: var(--black1);
+    font-size: 16px;
+}
+
+.livreur-info p {
+    margin: 0;
+    color: var(--black2);
+    font-size: 14px;
+}
+
+.livreur-status {
+    padding: 4px 8px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.livreur-status.active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.livreur-status.inactive {
+    background: #f8d7da;
+    color: #721c24;
+}

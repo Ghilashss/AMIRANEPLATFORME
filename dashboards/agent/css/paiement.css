@@ -1,0 +1,174 @@
+/* ==================== SECTION PAIEMENT COMMERCANT ==================== */
+
+.colis-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.montant-highlight {
+  color: #28a745;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.btn-payer {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+}
+
+.btn-payer:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-payer ion-icon {
+  font-size: 18px;
+}
+
+.btn-details {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-left: 6px;
+  transition: all 0.3s ease;
+}
+
+.btn-details:hover {
+  background: #5a6268;
+  transform: scale(1.05);
+}
+
+.btn-details ion-icon {
+  font-size: 18px;
+}
+
+/* Modal de paiement */
+.paiement-resume {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+.resume-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.resume-item:last-child {
+  border-bottom: none;
+}
+
+.resume-item.total {
+  margin-top: 10px;
+  padding-top: 15px;
+  border-top: 2px solid #28a745;
+  border-bottom: none;
+}
+
+.resume-label {
+  font-weight: 600;
+  color: #495057;
+  font-size: 14px;
+}
+
+.resume-value {
+  font-weight: 600;
+  color: #212529;
+  font-size: 15px;
+}
+
+.resume-item.total .resume-label {
+  font-size: 16px;
+  color: #28a745;
+}
+
+.resume-item.total .resume-value {
+  font-size: 22px;
+  color: #28a745;
+}
+
+/* Alert info */
+.alert {
+  padding: 15px;
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.alert-info {
+  background: #cfe2ff;
+  border: 1px solid #9ec5fe;
+  color: #084298;
+}
+
+.alert ion-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.alert strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* Boutons du modal */
+.btn-success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-success ion-icon {
+  font-size: 20px;
+}
+
+/* Tableau responsive */
+@media (max-width: 768px) {
+  .btn-payer {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  .btn-details {
+    padding: 6px 10px;
+  }
+  
+  .montant-highlight {
+    font-size: 14px;
+  }
+}

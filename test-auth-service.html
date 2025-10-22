@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test AuthService</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #2c3e50;
+      border-bottom: 3px solid #3498db;
+      padding-bottom: 10px;
+    }
+    h2 {
+      color: #34495e;
+      margin-top: 30px;
+    }
+    .test-section {
+      margin: 20px 0;
+      padding: 15px;
+      background: #ecf0f1;
+      border-radius: 5px;
+    }
+    button {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+    button:disabled {
+      background: #95a5a6;
+      cursor: not-allowed;
+    }
+    .success {
+      color: #27ae60;
+      font-weight: bold;
+    }
+    .error {
+      color: #e74c3c;
+      font-weight: bold;
+    }
+    .info {
+      color: #3498db;
+      font-weight: bold;
+    }
+    pre {
+      background: #2c3e50;
+      color: #ecf0f1;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
+    .log {
+      margin: 10px 0;
+      padding: 10px;
+      background: #fff;
+      border-left: 4px solid #3498db;
+      border-radius: 3px;
+    }
+    input {
+      padding: 8px;
+      margin: 5px;
+      border: 1px solid #bdc3c7;
+      border-radius: 4px;
+      width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1>🧪 Test AuthService - Migration API</h1>
+    
+    <div class="test-section">
+      <h2>📊 État actuel</h2>
+      <div id="status"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>🔐 Test 1: Connexion</h2>
+      <input type="email" id="testEmail" placeholder="Email" value="agent@test.com">
+      <input type="password" id="testPassword" placeholder="Mot de passe" value="123456">
+      <br>
+      <button onclick="testLogin()">Tester Connexion</button>
+      <div id="loginResult"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>👤 Test 2: Récupérer utilisateur</h2>
+      <button onclick="testGetCurrentUser()">Récupérer User depuis API</button>
+      <div id="userResult"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>📡 Test 3: Requête authentifiée</h2>
+      <button onclick="testFetchWithAuth()">Tester fetchWithAuth (agences)</button>
+      <div id="fetchResult"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>🗑️ Test 4: Déconnexion</h2>
+      <button onclick="testLogout()">Tester Déconnexion</button>
+      <div id="logoutResult"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>📋 Console de logs</h2>
+      <div id="logs"></div>
+      <button onclick="clearLogs()">Effacer les logs</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import AuthService from './dashboards/auth-service.js';
+
+    // Rendre AuthService disponible globalement pour les tests
+    window.AuthService = AuthService;
+
+    // Logger personnalisé
+    window.logMessage = function(message, type = 'info') {
+      const logsDiv = document.getElementById('logs');
+      const logEntry = document.createElement('div');
+      logEntry.className = 'log';
+      logEntry.innerHTML = `<span class="${type}">[${new Date().toLocaleTimeString()}]</span> ${message}`;
+      logsDiv.insertBefore(logEntry, logsDiv.firstChild);
+      console.log(message);
+    };
+
+    // Test 1: Connexion
+    window.testLogin = async function() {
+      const email = document.getElementById('testEmail').value;
+      const password = document.getElementById('testPassword').value;
+      const resultDiv = document.getElementById('loginResult');
+      
+      logMessage('🔐 Test de connexion...', 'info');
+      resultDiv.innerHTML = '<p>⏳ Connexion en cours...</p>';
+      
+      try {
+        const userData = await AuthService.login(email, password);
+        
+        resultDiv.innerHTML = `
+          <p class="success">✅ Connexion réussie!</p>
+          <pre>${JSON.stringify(userData, null, 2)}</pre>
+        `;
+        logMessage(`✅ Connexion réussie: ${userData.email} (${userData.role})`, 'success');
+        updateStatus();
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <p class="error">❌ Erreur de connexion</p>
+          <pre>${error.message}</pre>
+        `;
+        logMessage(`❌ Erreur de connexion: ${error.message}`, 'error');
+      }
+    };
+
+    // Test 2: Récupérer utilisateur
+    window.testGetCurrentUser = async function() {
+      const resultDiv = document.getElementById('userResult');
+      
+      logMessage('👤 Test getCurrentUser...', 'info');
+      resultDiv.innerHTML = '<p>⏳ Récupération de l\'utilisateur...</p>';
+      
+      try {
+        const user = await AuthService.getCurrentUser();
+        
+        resultDiv.innerHTML = `
+          <p class="success">✅ Utilisateur récupéré!</p>
+          <pre>${JSON.stringify(user, null, 2)}</pre>
+        `;
+        logMessage(`✅ Utilisateur récupéré: ${user.nom} ${user.prenom} (${user.email})`, 'success');
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <p class="error">❌ Erreur de récupération</p>
+          <pre>${error.message}</pre>
+        `;
+        logMessage(`❌ Erreur getCurrentUser: ${error.message}`, 'error');
+      }
+    };
+
+    // Test 3: Fetch avec auth
+    window.testFetchWithAuth = async function() {
+      const resultDiv = document.getElementById('fetchResult');
+      
+      logMessage('📡 Test fetchWithAuth...', 'info');
+      resultDiv.innerHTML = '<p>⏳ Récupération des agences...</p>';
+      
+      try {
+        const data = await AuthService.fetchWithAuth('http://localhost:1000/api/agences');
+        
+        resultDiv.innerHTML = `
+          <p class="success">✅ Requête réussie!</p>
+          <p>Nombre d'agences: ${data.count || data.data?.length || 0}</p>
+          <pre>${JSON.stringify(data, null, 2).substring(0, 500)}...</pre>
+        `;
+        logMessage(`✅ Requête réussie: ${data.count || data.data?.length || 0} agences`, 'success');
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <p class="error">❌ Erreur de requête</p>
+          <pre>${error.message}</pre>
+        `;
+        logMessage(`❌ Erreur fetchWithAuth: ${error.message}`, 'error');
+      }
+    };
+
+    // Test 4: Déconnexion
+    window.testLogout = function() {
+      const resultDiv = document.getElementById('logoutResult');
+      
+      logMessage('🚪 Test de déconnexion...', 'info');
+      
+      try {
+        AuthService.logout();
+        
+        resultDiv.innerHTML = `<p class="success">✅ Déconnexion réussie!</p>`;
+        logMessage('✅ Déconnexion réussie', 'success');
+        updateStatus();
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <p class="error">❌ Erreur de déconnexion</p>
+          <pre>${error.message}</pre>
+        `;
+        logMessage(`❌ Erreur logout: ${error.message}`, 'error');
+      }
+    };
+
+    // Effacer les logs
+    window.clearLogs = function() {
+      document.getElementById('logs').innerHTML = '';
+    };
+
+    // Mettre à jour le statut
+    function updateStatus() {
+      const statusDiv = document.getElementById('status');
+      const isAuth = AuthService.isAuthenticated();
+      const token = AuthService.getToken();
+      
+      statusDiv.innerHTML = `
+        <p><strong>Authentifié:</strong> <span class="${isAuth ? 'success' : 'error'}">${isAuth ? '✅ Oui' : '❌ Non'}</span></p>
+        <p><strong>Token:</strong> ${token ? `<code>${token.substring(0, 30)}...</code>` : '<span class="error">Aucun</span>'}</p>
+        <p><strong>Storage:</strong> sessionStorage</p>
+      `;
+    }
+
+    // Initialisation
+    window.addEventListener('DOMContentLoaded', () => {
+      logMessage('🚀 Page de test chargée', 'success');
+      updateStatus();
+    });
+  </script>
+</body>
+</html>

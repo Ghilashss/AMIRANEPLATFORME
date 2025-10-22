@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Info Commerçant</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #0b2b24;
+      margin-top: 0;
+    }
+    pre {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      border-left: 4px solid #0b2b24;
+    }
+    .status {
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    .success { background: #d4edda; color: #155724; }
+    .error { background: #f8d7da; color: #721c24; }
+    .warning { background: #fff3cd; color: #856404; }
+    button {
+      background: #0b2b24;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: #0a241f;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>🔍 Diagnostic Info Commerçant</h2>
+    <button onclick="testLocalStorage()">1️⃣ Tester localStorage</button>
+    <button onclick="testAgenceAPI()">2️⃣ Tester API Agence</button>
+    <button onclick="testFull()">3️⃣ Test Complet</button>
+    <button onclick="clearStorage()">🗑️ Vider localStorage</button>
+  </div>
+
+  <div id="results"></div>
+
+  <script>
+    const CONFIG = {
+      API_URL: 'http://localhost:1000/api',
+      TOKEN_KEY: 'commercant_token',
+      USER_KEY: 'commercant_user'
+    };
+
+    function log(title, content, type = 'info') {
+      const div = document.createElement('div');
+      div.className = 'card';
+      
+      let statusClass = '';
+      if (type === 'success') statusClass = 'success';
+      if (type === 'error') statusClass = 'error';
+      if (type === 'warning') statusClass = 'warning';
+      
+      div.innerHTML = `
+        <h2>${title}</h2>
+        <div class="status ${statusClass}">
+          <pre>${JSON.stringify(content, null, 2)}</pre>
+        </div>
+      `;
+      
+      document.getElementById('results').appendChild(div);
+    }
+
+    function testLocalStorage() {
+      document.getElementById('results').innerHTML = '';
+      
+      const token = localStorage.getItem(CONFIG.TOKEN_KEY);
+      const userStr = localStorage.getItem(CONFIG.USER_KEY);
+      
+      log('🔑 Token', token ? token.substring(0, 50) + '...' : '❌ ABSENT', token ? 'success' : 'error');
+      
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          log('👤 User Data', {
+            nom: user.nom,
+            prenom: user.prenom,
+            email: user.email,
+            role: user.role,
+            agence: user.agence,
+            wilaya: user.wilaya
+          }, 'success');
+          
+          if (!user.agence) {
+            log('⚠️ Attention', 'Cet utilisateur n\'a PAS d\'agence assignée', 'warning');
+          }
+        } catch (e) {
+          log('❌ Erreur Parse User', e.message, 'error');
+        }
+      } else {
+        log('❌ User Data', 'ABSENT - Vous devez vous connecter', 'error');
+      }
+      
+      // Vérifier aussi les autres clés
+      log('📋 Toutes les clés localStorage', {
+        'commercant_token': !!localStorage.getItem('commercant_token'),
+        'commercant_user': !!localStorage.getItem('commercant_user'),
+        'agent_token': !!localStorage.getItem('agent_token'),
+        'agent_user': !!localStorage.getItem('agent_user'),
+        'admin_token': !!localStorage.getItem('admin_token'),
+        'admin_user': !!localStorage.getItem('admin_user'),
+        'token': !!localStorage.getItem('token'),
+        'user': !!localStorage.getItem('user')
+      }, 'info');
+    }
+
+    async function testAgenceAPI() {
+      document.getElementById('results').innerHTML = '';
+      
+      const token = localStorage.getItem(CONFIG.TOKEN_KEY);
+      const userStr = localStorage.getItem(CONFIG.USER_KEY);
+      
+      if (!token || !userStr) {
+        log('❌ Erreur', 'Token ou User absent. Connectez-vous d\'abord.', 'error');
+        return;
+      }
+      
+      const user = JSON.parse(userStr);
+      
+      if (!user.agence) {
+        log('⚠️ Attention', 'L\'utilisateur n\'a pas d\'agence assignée', 'warning');
+        return;
+      }
+      
+      log('📡 Appel API', `GET /api/agences/${user.agence}`, 'info');
+      
+      try {
+        const response = await fetch(`${CONFIG.API_URL}/agences/${user.agence}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        log('📊 Réponse HTTP', { status: response.status, statusText: response.statusText }, 
+          response.ok ? 'success' : 'error');
+        
+        if (response.ok) {
+          const result = await response.json();
+          log('✅ Données Agence', result, 'success');
+          
+          if (result.success && result.data) {
+            log('🏢 Agence trouvée', {
+              nom: result.data.nom,
+              code: result.data.code,
+              wilaya: result.data.wilaya,
+              telephone: result.data.telephone
+            }, 'success');
+          }
+        } else {
+          const error = await response.text();
+          log('❌ Erreur API', error, 'error');
+        }
+      } catch (error) {
+        log('❌ Erreur Réseau', error.message, 'error');
+      }
+    }
+
+    async function testFull() {
+      document.getElementById('results').innerHTML = '';
+      
+      log('🚀 Test Complet Démarré', 'Simulation de loadCommercantInfo()', 'info');
+      
+      try {
+        // Étape 1: Vérifier localStorage
+        const userStr = localStorage.getItem(CONFIG.USER_KEY);
+        const token = localStorage.getItem(CONFIG.TOKEN_KEY);
+
+        if (!userStr) {
+          log('❌ Étape 1', 'Utilisateur non connecté', 'error');
+          return;
+        }
+
+        const user = JSON.parse(userStr);
+        log('✅ Étape 1', 'User récupéré: ' + user.nom + ' ' + (user.prenom || ''), 'success');
+
+        // Étape 2: Affichage nom et email (simulation)
+        log('✅ Étape 2', {
+          'Nom affiché': user.nom + (user.prenom ? ' ' + user.prenom : ''),
+          'Email affiché': user.email || ''
+        }, 'success');
+
+        // Étape 3: Vérifier agence
+        if (!user.agence) {
+          log('⚠️ Étape 3', 'Pas d\'agence assignée - affichera "Aucune agence"', 'warning');
+          return;
+        }
+
+        if (!token) {
+          log('❌ Étape 3', 'Token manquant', 'error');
+          return;
+        }
+
+        log('🔄 Étape 3', 'Chargement agence: ' + user.agence, 'info');
+
+        // Étape 4: Appel API
+        const response = await fetch(`${CONFIG.API_URL}/agences/${user.agence}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        log('📡 Étape 4', {
+          status: response.status,
+          ok: response.ok
+        }, response.ok ? 'success' : 'error');
+
+        if (response.ok) {
+          const result = await response.json();
+          
+          if (result.success && result.data) {
+            const agence = result.data;
+            const agenceNom = agence.nom || `Agence ${agence.wilaya}`;
+            
+            log('✅ RÉSULTAT FINAL', {
+              'Nom commerçant': user.nom + (user.prenom ? ' ' + user.prenom : ''),
+              'Email': user.email,
+              'Agence': agenceNom
+            }, 'success');
+          } else {
+            log('⚠️ Étape 5', 'Agence inconnue (structure inattendue)', 'warning');
+          }
+        } else {
+          log('❌ Étape 4', 'Erreur HTTP: ' + response.status, 'error');
+        }
+      } catch (error) {
+        log('❌ ERREUR GLOBALE', error.message, 'error');
+        console.error(error);
+      }
+    }
+
+    function clearStorage() {
+      if (confirm('⚠️ Voulez-vous vraiment vider tout le localStorage ?')) {
+        localStorage.clear();
+        log('🗑️ localStorage vidé', 'Rechargez la page et reconnectez-vous', 'warning');
+      }
+    }
+
+    // Test auto au chargement
+    window.addEventListener('load', () => {
+      setTimeout(testLocalStorage, 500);
+    });
+  </script>
+</body>
+</html>

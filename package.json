@@ -1,0 +1,9 @@
+{
+  "name": "platforme-frontend-server",
+  "version": "1.0.0",
+  "description": "Serveur HTTP simple pour la plateforme",
+  "main": "server-frontend.js",
+  "scripts": {
+    "start": "node server-frontend.js"
+  }
+}

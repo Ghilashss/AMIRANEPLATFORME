@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migration - Ajouter createdBy aux Colis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .warning-box {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .success-box {
+            background: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            padding: 15px;
+            margin: 20px 0;
+            display: none;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button.secondary {
+            background: #2196F3;
+        }
+        button.secondary:hover {
+            background: #0b7dda;
+        }
+        button.danger {
+            background: #f44336;
+        }
+        button.danger:hover {
+            background: #da190b;
+        }
+        #log {
+            background: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .log-line {
+            margin: 5px 0;
+        }
+        .log-success { color: #4CAF50; }
+        .log-error { color: #f44336; }
+        .log-warning { color: #ff9800; }
+        .log-info { color: #2196F3; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Migration des Colis - Ajout du champ createdBy</h1>
+        
+        <div class="info-box">
+            <strong>ℹ️ Information :</strong><br>
+            Cette page permet de migrer les colis existants dans le localStorage pour ajouter le champ <code>createdBy</code>.
+            <br><br>
+            <strong>Règles de migration :</strong>
+            <ul>
+                <li>Par défaut, tous les colis seront marqués comme créés par <strong>'admin'</strong></li>
+                <li>Vous pouvez choisir de marquer tous les colis comme créés par <strong>'agent'</strong></li>
+            </ul>
+        </div>
+
+        <div class="warning-box">
+            <strong>⚠️ Attention :</strong><br>
+            Cette opération va modifier tous les colis dans le localStorage. Une sauvegarde sera créée automatiquement.
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Colis Total</h3>
+                <div class="number" id="totalColis">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Sans createdBy</h3>
+                <div class="number" id="sanscreatedBy">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Avec createdBy</h3>
+                <div class="number" id="aveccreatedBy">-</div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <button onclick="analyzerColis()">🔍 Analyser les Colis</button>
+            <button onclick="migrerCommeAdmin()" class="secondary">✅ Migrer comme ADMIN</button>
+            <button onclick="migrerCommeAgent()" class="secondary">✅ Migrer comme AGENT</button>
+            <button onclick="sauvegarder()" class="secondary">💾 Sauvegarder</button>
+            <button onclick="restaurer()" class="danger">♻️ Restaurer Sauvegarde</button>
+        </div>
+
+        <div class="success-box" id="successBox">
+            <strong>✅ Migration Réussie !</strong><br>
+            <span id="successMessage"></span>
+        </div>
+
+        <div id="log"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const line = document.createElement('div');
+            line.className = `log-line log-${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            line.textContent = `[${timestamp}] ${message}`;
+            logDiv.appendChild(line);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function updateStats() {
+            const colis = JSON.parse(localStorage.getItem('colis') || '[]');
+            const total = colis.length;
+            const sans = colis.filter(c => !c.createdBy).length;
+            const avec = colis.filter(c => c.createdBy).length;
+
+            document.getElementById('totalColis').textContent = total;
+            document.getElementById('sanscreatedBy').textContent = sans;
+            document.getElementById('aveccreatedBy').textContent = avec;
+        }
+
+        function analyzerColis() {
+            log('🔍 Analyse des colis en cours...', 'info');
+            
+            const colis = JSON.parse(localStorage.getItem('colis') || '[]');
+            
+            if (colis.length === 0) {
+                log('⚠️ Aucun colis trouvé dans le localStorage', 'warning');
+                updateStats();
+                return;
+            }
+
+            log(`📦 ${colis.length} colis trouvés`, 'success');
+            
+            const sanscreatedBy = colis.filter(c => !c.createdBy);
+            const aveccreatedBy = colis.filter(c => c.createdBy);
+
+            log(`✅ ${aveccreatedBy.length} colis ont déjà le champ createdBy`, 'success');
+            log(`⚠️ ${sanscreatedBy.length} colis n'ont PAS le champ createdBy`, 'warning');
+
+            if (aveccreatedBy.length > 0) {
+                const parType = {};
+                aveccreatedBy.forEach(c => {
+                    parType[c.createdBy] = (parType[c.createdBy] || 0) + 1;
+                });
+                log('📊 Répartition actuelle:', 'info');
+                Object.entries(parType).forEach(([type, count]) => {
+                    log(`   - ${type}: ${count} colis`, 'info');
+                });
+            }
+
+            updateStats();
+        }
+
+        function sauvegarder() {
+            const colis = localStorage.getItem('colis');
+            if (!colis) {
+                log('⚠️ Aucun colis à sauvegarder', 'warning');
+                return;
+            }
+
+            localStorage.setItem('colis_backup', colis);
+            const timestamp = new Date().toISOString();
+            localStorage.setItem('colis_backup_date', timestamp);
+            
+            log('💾 Sauvegarde créée avec succès', 'success');
+            log(`📅 Date: ${new Date(timestamp).toLocaleString()}`, 'info');
+        }
+
+        function restaurer() {
+            const backup = localStorage.getItem('colis_backup');
+            if (!backup) {
+                log('❌ Aucune sauvegarde trouvée', 'error');
+                return;
+            }
+
+            if (!confirm('⚠️ Êtes-vous sûr de vouloir restaurer la sauvegarde ? Cela écrasera les colis actuels.')) {
+                log('❌ Restauration annulée', 'warning');
+                return;
+            }
+
+            localStorage.setItem('colis', backup);
+            const backupDate = localStorage.getItem('colis_backup_date');
+            
+            log('♻️ Sauvegarde restaurée avec succès', 'success');
+            if (backupDate) {
+                log(`📅 Sauvegarde du: ${new Date(backupDate).toLocaleString()}`, 'info');
+            }
+            
+            analyzerColis();
+        }
+
+        function migrerCommeAdmin() {
+            migrer('admin');
+        }
+
+        function migrerCommeAgent() {
+            migrer('agent');
+        }
+
+        function migrer(type) {
+            log(`🔄 Début de la migration (createdBy = '${type}')...`, 'info');
+            
+            // Créer une sauvegarde automatique
+            sauvegarder();
+            
+            const colis = JSON.parse(localStorage.getItem('colis') || '[]');
+            
+            if (colis.length === 0) {
+                log('⚠️ Aucun colis à migrer', 'warning');
+                return;
+            }
+
+            let modified = 0;
+            let skipped = 0;
+
+            colis.forEach(c => {
+                if (!c.createdBy) {
+                    c.createdBy = type;
+                    modified++;
+                } else {
+                    skipped++;
+                }
+            });
+
+            localStorage.setItem('colis', JSON.stringify(colis));
+            
+            log(`✅ Migration terminée !`, 'success');
+            log(`   - ${modified} colis modifiés (createdBy = '${type}')`, 'success');
+            log(`   - ${skipped} colis ignorés (avaient déjà createdBy)`, 'info');
+            
+            // Afficher le message de succès
+            const successBox = document.getElementById('successBox');
+            const successMessage = document.getElementById('successMessage');
+            successMessage.textContent = `${modified} colis ont été marqués comme créés par '${type}'. ${skipped} colis avaient déjà le champ createdBy.`;
+            successBox.style.display = 'block';
+            
+            // Mettre à jour les stats
+            updateStats();
+            
+            // Suggérer un rechargement
+            setTimeout(() => {
+                if (confirm('✅ Migration réussie ! Voulez-vous recharger la page pour appliquer les changements ?')) {
+                    location.reload();
+                }
+            }, 1000);
+        }
+
+        // Analyser au chargement
+        window.addEventListener('DOMContentLoaded', () => {
+            log('🚀 Script de migration chargé', 'success');
+            analyzerColis();
+        });
+    </script>
+</body>
+</html>

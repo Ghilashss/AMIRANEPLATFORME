@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Test Wilayas Expéditeur</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 10px 10px 0;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .info { color: #17a2b8; }
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .badge-success { background: #d4edda; color: #155724; }
+        .badge-warning { background: #fff3cd; color: #856404; }
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Wilayas Expéditeur</h1>
+        
+        <div class="test-section">
+            <h3>1️⃣ Test API Frais de Livraison</h3>
+            <button onclick="testAPI()">Tester API</button>
+            <div id="result-api" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2️⃣ Vérifier Champs nomWilayaSource</h3>
+            <button onclick="checkFields()">Vérifier Champs</button>
+            <div id="result-fields" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3️⃣ Extraire Wilayas Sources</h3>
+            <button onclick="extractSources()">Extraire</button>
+            <div id="result-sources" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4️⃣ Simuler Select Wilaya Expéditeur</h3>
+            <button onclick="simulateSelect()">Simuler</button>
+            <select id="wilayaExpediteur">
+                <option value="">Sélectionner une wilaya</option>
+            </select>
+            <div id="result-select" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>5️⃣ Comparaison Avant/Après</h3>
+            <button onclick="showComparison()">Afficher</button>
+            <div id="result-comparison" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        let fraisData = [];
+
+        async function testAPI() {
+            const resultDiv = document.getElementById('result-api');
+            resultDiv.innerHTML = '<div class="info">⏳ Chargement...</div>';
+
+            try {
+                const token = sessionStorage.getItem('auth_token');
+                if (!token) {
+                    resultDiv.innerHTML = '<div class="error">❌ Pas de token. Connectez-vous d\'abord.</div>';
+                    return;
+                }
+
+                const response = await fetch('http://localhost:1000/api/frais-livraison', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (Array.isArray(data)) {
+                    fraisData = data;
+                } else if (data.data && Array.isArray(data.data)) {
+                    fraisData = data.data;
+                } else {
+                    fraisData = [];
+                }
+
+                let html = `<div class="success">✅ API répondu avec succès !</div>`;
+                html += `<div><strong>Nombre de configs :</strong> <span class="badge badge-success">${fraisData.length}</span></div>`;
+                html += `<div style="margin-top: 15px;"><strong>Réponse complète :</strong></div>`;
+                html += `<pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; max-height: 200px; overflow: auto;">${JSON.stringify(data, null, 2)}</pre>`;
+
+                resultDiv.innerHTML = html;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Erreur : ${error.message}</div>`;
+            }
+        }
+
+        function checkFields() {
+            const resultDiv = document.getElementById('result-fields');
+
+            if (fraisData.length === 0) {
+                resultDiv.innerHTML = '<div class="error">❌ Chargez d\'abord l\'API (Test 1)</div>';
+                return;
+            }
+
+            let html = `<div class="info">📋 Vérification des champs...</div>`;
+            html += '<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">';
+            html += '<tr style="background: #667eea; color: white;"><th style="padding: 10px;">Index</th><th>wilayaSource</th><th>nomWilayaSource</th><th>wilayaDest</th><th>nomWilayaDest</th></tr>';
+
+            let allGood = true;
+            fraisData.forEach((f, i) => {
+                const hasSourceCode = !!f.wilayaSource;
+                const hasSourceNom = !!f.nomWilayaSource;
+                const hasDestCode = !!f.wilayaDest;
+                const hasDestNom = !!f.nomWilayaDest;
+
+                const rowClass = (hasSourceCode && hasSourceNom && hasDestCode && hasDestNom) ? 'background: #d4edda;' : 'background: #f8d7da;';
+                
+                if (!hasSourceNom || !hasDestNom) allGood = false;
+
+                html += `<tr style="${rowClass}"><td style="padding: 10px; text-align: center;">${i}</td>`;
+                html += `<td style="padding: 10px;">${hasSourceCode ? '✅ ' + f.wilayaSource : '❌'}</td>`;
+                html += `<td style="padding: 10px;">${hasSourceNom ? '✅ ' + f.nomWilayaSource : '❌ Manquant'}</td>`;
+                html += `<td style="padding: 10px;">${hasDestCode ? '✅ ' + f.wilayaDest : '❌'}</td>`;
+                html += `<td style="padding: 10px;">${hasDestNom ? '✅ ' + f.nomWilayaDest : '❌ Manquant'}</td></tr>`;
+            });
+
+            html += '</table>';
+
+            if (allGood) {
+                html += '<div class="success" style="margin-top: 15px;">✅ Tous les champs sont présents !</div>';
+            } else {
+                html += '<div class="error" style="margin-top: 15px;">❌ Certains champs manquent. Redémarrez le backend !</div>';
+            }
+
+            resultDiv.innerHTML = html;
+        }
+
+        function extractSources() {
+            const resultDiv = document.getElementById('result-sources');
+
+            if (fraisData.length === 0) {
+                resultDiv.innerHTML = '<div class="error">❌ Chargez d\'abord l\'API (Test 1)</div>';
+                return;
+            }
+
+            const wilayasMap = new Map();
+
+            fraisData.forEach(frais => {
+                if (frais.wilayaSource && frais.nomWilayaSource) {
+                    const key = frais.wilayaSource;
+                    if (!wilayasMap.has(key)) {
+                        wilayasMap.set(key, {
+                            code: frais.wilayaSource,
+                            nom: frais.nomWilayaSource,
+                            _id: frais.wilayaSourceId || key
+                        });
+                    }
+                }
+            });
+
+            const wilayasList = Array.from(wilayasMap.values()).sort((a, b) => {
+                return parseInt(a.code) - parseInt(b.code);
+            });
+
+            let html = `<div class="success">✅ Extraction réussie !</div>`;
+            html += `<div><strong>Wilayas sources uniques :</strong> <span class="badge badge-success">${wilayasList.length}</span></div>`;
+            html += `<div style="margin-top: 15px;"><strong>Liste :</strong></div>`;
+            html += '<ul>';
+            wilayasList.forEach(w => {
+                html += `<li><strong>${w.code}</strong> - ${w.nom}</li>`;
+            });
+            html += '</ul>';
+
+            resultDiv.innerHTML = html;
+        }
+
+        function simulateSelect() {
+            const resultDiv = document.getElementById('result-select');
+            const select = document.getElementById('wilayaExpediteur');
+
+            if (fraisData.length === 0) {
+                resultDiv.innerHTML = '<div class="error">❌ Chargez d\'abord l\'API (Test 1)</div>';
+                return;
+            }
+
+            select.innerHTML = '<option value="">Sélectionner une wilaya</option>';
+
+            const wilayasMap = new Map();
+
+            fraisData.forEach(frais => {
+                if (frais.wilayaSource && frais.nomWilayaSource) {
+                    const key = frais.wilayaSource;
+                    if (!wilayasMap.has(key)) {
+                        wilayasMap.set(key, {
+                            code: frais.wilayaSource,
+                            nom: frais.nomWilayaSource,
+                            _id: frais.wilayaSourceId || key
+                        });
+                    }
+                }
+            });
+
+            const wilayasList = Array.from(wilayasMap.values()).sort((a, b) => {
+                return parseInt(a.code) - parseInt(b.code);
+            });
+
+            wilayasList.forEach(wilaya => {
+                const option = document.createElement('option');
+                option.value = wilaya._id;
+                option.textContent = `${wilaya.code} - ${wilaya.nom}`;
+                option.dataset.code = wilaya.code;
+                select.appendChild(option);
+            });
+
+            let html = `<div class="success">✅ Select rempli !</div>`;
+            html += `<div><strong>Options ajoutées :</strong> <span class="badge badge-success">${wilayasList.length}</span></div>`;
+            html += `<div style="margin-top: 10px;">Regardez le select ci-dessus ⬆️</div>`;
+
+            resultDiv.innerHTML = html;
+        }
+
+        function showComparison() {
+            const resultDiv = document.getElementById('result-comparison');
+
+            let html = `<div class="info">📊 Comparaison AVANT/APRÈS</div>`;
+            html += '<table style="width: 100%; margin-top: 15px; border-collapse: collapse;">';
+            html += '<tr style="background: #667eea; color: white;"><th style="padding: 10px;">Aspect</th><th>AVANT</th><th>APRÈS</th></tr>';
+            
+            html += '<tr style="background: #f8f9fa;"><td style="padding: 10px;"><strong>API Réponse</strong></td>';
+            html += '<td>❌ Pas de nomWilayaSource</td><td>✅ Avec nomWilayaSource</td></tr>';
+            
+            html += '<tr style="background: white;"><td style="padding: 10px;"><strong>Frontend</strong></td>';
+            html += '<td>❌ if (nomWilayaSource) → false</td><td>✅ if (nomWilayaSource) → true</td></tr>';
+            
+            html += '<tr style="background: #f8f9fa;"><td style="padding: 10px;"><strong>Select</strong></td>';
+            html += '<td>❌ Vide (0 options)</td><td>✅ Rempli (X options)</td></tr>';
+            
+            html += '<tr style="background: white;"><td style="padding: 10px;"><strong>Utilisateur</strong></td>';
+            html += '<td>❌ Ne peut pas sélectionner</td><td>✅ Peut sélectionner</td></tr>';
+            
+            html += '</table>';
+
+            html += '<div style="margin-top: 20px; padding: 15px; background: #d4edda; border-radius: 8px; color: #155724;">';
+            html += '<strong>🎉 Problème résolu !</strong><br/>';
+            html += 'Le backend enrichit maintenant les données avec les noms des wilayas.';
+            html += '</div>';
+
+            resultDiv.innerHTML = html;
+        }
+
+        window.onload = () => {
+            console.log('🧪 Page de test chargée');
+            console.log('💡 Exécutez les tests dans l\'ordre');
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion Commerçant - Plateforme de Livraison</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0b2b24 0%, #1a4a3d 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      max-width: 1000px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      animation: slideIn 0.5s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Section Branding (Gauche) */
+    .branding-section {
+      background: linear-gradient(135deg, #0b2b24 0%, #1a4a3d 100%);
+      color: white;
+      padding: 60px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .branding-section::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: pulse 15s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.1); opacity: 0.3; }
+    }
+
+    .logo {
+      width: 120px;
+      height: 120px;
+      background: white;
+      border-radius: 50%;
+      margin: 0 auto 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+      position: relative;
+      z-index: 1;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .logo i {
+      font-size: 60px;
+      color: #0b2b24;
+    }
+
+    .branding-section h1 {
+      font-size: 36px;
+      margin-bottom: 20px;
+      font-weight: 700;
+      position: relative;
+      z-index: 1;
+    }
+
+    .branding-section p {
+      font-size: 16px;
+      opacity: 0.95;
+      line-height: 1.6;
+      max-width: 350px;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 30px;
+    }
+
+    .features {
+      list-style: none;
+      text-align: left;
+      margin-top: 40px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .features li {
+      padding: 12px 0;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      opacity: 0.95;
+    }
+
+    .features li i {
+      margin-right: 15px;
+      font-size: 20px;
+      color: #4ade80;
+    }
+
+    /* Section Formulaire (Droite) */
+    .login-section {
+      padding: 60px 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .login-header h2 {
+      font-size: 28px;
+      color: #0b2b24;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .login-header p {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .login-header p {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .input-group {
+      position: relative;
+    }
+
+    .input-group i {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #0b2b24;
+      font-size: 18px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 14px 15px 14px 45px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 15px;
+      transition: all 0.3s;
+      background: #f8f9fa;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: #0b2b24;
+      background: white;
+      box-shadow: 0 0 0 4px rgba(11, 43, 36, 0.1);
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #0b2b24 0%, #1a4a3d 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 10px;
+      box-shadow: 0 4px 15px rgba(11, 43, 36, 0.3);
+    }
+
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(11, 43, 36, 0.4);
+    }
+
+    .btn-login:active {
+      transform: translateY(0);
+    }
+
+    .btn-login:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-login i {
+      margin-right: 8px;
+    }
+
+    .alert {
+      padding: 12px 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      display: none;
+      animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .alert-error {
+      background: #ffebee;
+      color: #c62828;
+      border-left: 4px solid #c62828;
+    }
+
+    .alert-success {
+      background: #e8f5e9;
+      color: #2e7d32;
+      border-left: 4px solid #2e7d32;
+    }
+
+    .alert i {
+      margin-right: 8px;
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #666;
+      font-size: 18px;
+      z-index: 10;
+    }
+
+    .password-toggle:hover {
+      color: #0b2b24;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #0b2b24;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .help-text {
+      font-size: 12px;
+      color: #666;
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .credentials-hint {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: #856404;
+    }
+
+    .credentials-hint strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #e0e0e0;
+      color: #666;
+      font-size: 12px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .login-container {
+        grid-template-columns: 1fr;
+        max-width: 450px;
+      }
+
+      .branding-section {
+        padding: 40px 30px;
+      }
+
+      .branding-section h1 {
+        font-size: 28px;
+      }
+
+      .features {
+        display: none;
+      }
+
+      .login-section {
+        padding: 40px 30px;
+      }
+    }
+  </style>
+    <!-- Configuration API (OBLIGATOIRE EN PREMIER) -->
+    <script src="/dashboards/config.js"></script>
+</head>
+<body>
+  <div class="login-container">
+    <!-- Section Branding Gauche -->
+    <div class="branding-section">
+      <div class="logo">
+        <i class="fas fa-store"></i>
+      </div>
+      <h1>Espace Commerçant</h1>
+      <p>Gérez vos colis, suivez vos livraisons et développez votre activité en toute simplicité.</p>
+      
+      <ul class="features">
+        <li>
+          <i class="fas fa-box"></i>
+          <span>Gestion complète de vos colis</span>
+        </li>
+        <li>
+          <i class="fas fa-chart-line"></i>
+          <span>Statistiques en temps réel</span>
+        </li>
+        <li>
+          <i class="fas fa-money-bill-wave"></i>
+          <span>Suivi de la caisse et transactions</span>
+        </li>
+        <li>
+          <i class="fas fa-shield-alt"></i>
+          <span>Plateforme 100% sécurisée</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Section Formulaire Droite -->
+    <div class="login-section">
+      <div class="login-header">
+        <h2>Connexion</h2>
+        <p>Accédez à votre tableau de bord</p>
+      </div>
+
+      <form id="loginForm">
+        <div id="alertBox" class="alert"></div>
+
+        <!-- Hint pour les identifiants (en développement) -->
+        <div class="credentials-hint">
+          <strong><i class="fas fa-info-circle"></i> Identifiants de test :</strong>
+          Email: commercant@test.com<br>
+          Mot de passe: 123456
+        </div>
+
+        <div class="form-group">
+          <label for="email">
+            <i class="fas fa-envelope"></i> Adresse email
+          </label>
+          <div class="input-group">
+            <i class="fas fa-envelope"></i>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              class="form-control" 
+              placeholder="votre@email.com"
+              value="commercant@test.com"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">
+            <i class="fas fa-lock"></i> Mot de passe
+          </label>
+          <div class="input-group">
+            <i class="fas fa-lock"></i>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              class="form-control" 
+              placeholder="••••••••"
+              value="123456"
+              required
+            >
+            <i class="fas fa-eye password-toggle" id="togglePassword"></i>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-login" id="loginBtn">
+          <i class="fas fa-sign-in-alt"></i> Se connecter
+        </button>
+
+        <div class="loading" id="loading">
+          <div class="spinner"></div>
+          <p style="margin-top: 10px; color: #666;">Connexion en cours...</p>
+        </div>
+
+        <div class="help-text">
+          <i class="fas fa-question-circle"></i> 
+          Problème de connexion ? Vérifiez que le serveur backend est lancé.
+        </div>
+      </form>
+
+      <div class="footer">
+        <i class="fas fa-shield-alt"></i> Plateforme de Livraison Sécurisée &copy; 2025
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:1000/api';
+
+    // Toggle password visibility
+    document.getElementById('togglePassword').addEventListener('click', function() {
+      const passwordInput = document.getElementById('password');
+      const icon = this;
+      
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+      } else {
+        passwordInput.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+      }
+    });
+
+    // Show alert
+    function showAlert(message, type = 'error') {
+      const alertBox = document.getElementById('alertBox');
+      alertBox.className = `alert alert-${type}`;
+      alertBox.innerHTML = `
+        <i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'}"></i>
+        ${message}
+      `;
+      alertBox.style.display = 'block';
+      
+      setTimeout(() => {
+        alertBox.style.display = 'none';
+      }, 5000);
+    }
+
+    // Login form submission
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const loginBtn = document.getElementById('loginBtn');
+      const loading = document.getElementById('loading');
+
+      // Validation
+      if (!email || !password) {
+        showAlert('Veuillez remplir tous les champs.', 'error');
+        return;
+      }
+
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        showAlert('Format d\'email invalide.', 'error');
+        return;
+      }
+
+      // Disable button and show loading
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connexion...';
+      loading.style.display = 'block';
+
+      try {
+        console.log('🔵 Tentative de connexion à:', `${API_URL}/auth/login`);
+        console.log('📧 Email:', email);
+
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, password })
+        });
+
+        console.log('📡 Réponse status:', response.status);
+
+        const data = await response.json();
+        console.log('📦 Données reçues:', data);
+
+        if (data.success && data.data) {
+          // Vérifier que c'est bien un commerçant
+          if (data.data.role !== 'commercant') {
+            showAlert('Accès refusé. Cet espace est réservé aux commerçants.', 'error');
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Se connecter';
+            loading.style.display = 'none';
+            return;
+          }
+
+          // ✅ Stocker le token avec clés spécifiques au commerçant (ne pas écraser l'agent)
+          localStorage.setItem('commercant_token', data.data.token);
+          localStorage.setItem('commercant_user', JSON.stringify(data.data));
+          localStorage.setItem('commercant_role', 'commercant');
+
+          // ✅ AUSSI stocker dans sessionStorage pour colis-form-handler.js
+          sessionStorage.setItem('auth_token', data.data.token);
+          sessionStorage.setItem('user', JSON.stringify(data.data));
+          sessionStorage.setItem('role', 'commercant');
+
+          console.log('✅ Connexion réussie');
+          console.log('🔑 Token commerçant stocké');
+          console.log('👤 Utilisateur:', data.data.email);
+
+          showAlert('Connexion réussie ! Redirection...', 'success');
+
+          // Rediriger vers le dashboard
+          setTimeout(() => {
+            window.location.href = 'commercant-dashboard.html';
+          }, 1000);
+
+        } else {
+          showAlert(data.message || 'Identifiants incorrects.', 'error');
+          loginBtn.disabled = false;
+          loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Se connecter';
+          loading.style.display = 'none';
+        }
+
+      } catch (error) {
+        console.error('❌ Erreur de connexion:', error);
+        
+        let errorMessage = 'Erreur de connexion au serveur.';
+        
+        if (error.message.includes('Failed to fetch')) {
+          errorMessage = `
+            ❌ Impossible de contacter le serveur backend.<br>
+            <strong>Vérifiez que :</strong><br>
+            • Le backend est lancé (port 5000)<br>
+            • MongoDB est démarré<br>
+            • Commande: <code>cd backend && node server.js</code>
+          `;
+        }
+        
+        showAlert(errorMessage, 'error');
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Se connecter';
+        loading.style.display = 'none';
+      }
+    });
+
+    // Auto-fill pour le développement (peut être retiré en production)
+    window.addEventListener('load', function() {
+      console.log('🚀 Page de connexion commerçant chargée');
+      console.log('📍 API URL:', API_URL);
+      
+      // Vérifier si le commerçant est déjà connecté (avec clés spécifiques)
+      const token = localStorage.getItem('commercant_token');
+      const user = localStorage.getItem('commercant_user');
+      
+      if (token && user) {
+        try {
+          const userData = JSON.parse(user);
+          if (userData.role === 'commercant') {
+            console.log('✅ Commerçant déjà connecté, redirection...');
+            // Petit délai pour permettre à la page de s'afficher
+            setTimeout(() => {
+              window.location.href = 'commercant-dashboard.html';
+            }, 100);
+          }
+        } catch (error) {
+          console.error('❌ Erreur parsing user data:', error);
+          // Nettoyer les données corrompues
+          localStorage.removeItem('commercant_token');
+          localStorage.removeItem('commercant_user');
+          localStorage.removeItem('commercant_role');
+        }
+      }
+    });
+  </script>
+</body>
+</html>

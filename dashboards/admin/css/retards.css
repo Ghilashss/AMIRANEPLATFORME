@@ -1,0 +1,220 @@
+/* === Retards Section Styles === */
+
+/* Header */
+.retards-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.retards-header h2 {
+    color: var(--black1);
+    font-size: 24px;
+    font-weight: 600;
+}
+
+/* Stats Cards */
+.retards-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.stat-card {
+    background: var(--white);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.stat-icon.warning { background: rgba(255,193,7,0.1); color: var(--warning); }
+.stat-icon.danger { background: rgba(220,53,69,0.1); color: var(--danger); }
+.stat-icon.info { background: rgba(23,162,184,0.1); color: var(--info); }
+
+.stat-info h3 {
+    font-size: 14px;
+    color: var(--black2);
+    margin-bottom: 5px;
+}
+
+.stat-info p {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--black1);
+    margin: 0;
+}
+
+/* Filters */
+.retards-filters {
+    background: var(--white);
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-group label {
+    font-size: 14px;
+    color: var(--black2);
+    white-space: nowrap;
+}
+
+.filter-group select,
+.filter-group input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    min-width: 150px;
+}
+
+/* Table des retards */
+.retards-table {
+    background: var(--white);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    overflow-x: auto;
+}
+
+.retards-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.retards-table th {
+    background: var(--gray);
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--black1);
+}
+
+.retards-table td {
+    padding: 12px 15px;
+    font-size: 14px;
+    border-bottom: 1px solid #eee;
+}
+
+.retards-table tr:hover {
+    background: #f8f9fa;
+}
+
+/* Durée de retard */
+.retard-duration {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.retard-duration.faible { 
+    background: #fff3cd; 
+    color: #856404; 
+}
+
+.retard-duration.moyen { 
+    background: #ffe5d0; 
+    color: #b35900; 
+}
+
+.retard-duration.critique { 
+    background: #f8d7da; 
+    color: #721c24; 
+}
+
+/* Actions */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.action-btn i {
+    font-size: 16px;
+}
+
+.action-btn.resolve {
+    background: var(--success);
+    color: white;
+}
+
+.action-btn.notify {
+    background: var(--warning);
+    color: var(--black1);
+}
+
+.action-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .retards-filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-group label {
+        margin-bottom: 5px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stat-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

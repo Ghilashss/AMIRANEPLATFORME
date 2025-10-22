@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Diagnostic Commerçants</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .test-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            gap: 10px;
+        }
+        .icon {
+            font-size: 24px;
+            min-width: 30px;
+        }
+        .label {
+            flex: 1;
+            font-weight: 600;
+            color: #333;
+        }
+        .value {
+            color: #666;
+            font-family: monospace;
+        }
+        .status-ok { color: #10b981; }
+        .status-error { color: #ef4444; }
+        .status-warning { color: #f59e0b; }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .log-box {
+            background: #1e293b;
+            color: #10b981;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+            line-height: 1.6;
+        }
+        .log-box .error { color: #ef4444; }
+        .log-box .warning { color: #f59e0b; }
+        .log-box .success { color: #10b981; }
+        .log-box .info { color: #3b82f6; }
+        
+        .commercants-list {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .commercant-item {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            display: grid;
+            grid-template-columns: 30px 1fr;
+            gap: 10px;
+            align-items: start;
+        }
+        .commercant-item:last-child {
+            border-bottom: none;
+        }
+        .commercant-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .commercant-name {
+            font-weight: 600;
+            color: #333;
+        }
+        .commercant-detail {
+            font-size: 13px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            🔍 Diagnostic Commerçants
+        </h1>
+        <div class="subtitle">
+            Vérification complète de l'affichage des commerçants dans le dashboard agent
+        </div>
+
+        <!-- BOUTONS D'ACTION -->
+        <div style="margin-bottom: 30px;">
+            <button class="btn" onclick="runFullDiagnostic()">🔍 Lancer Diagnostic Complet</button>
+            <button class="btn btn-success" onclick="testAPI()">📡 Tester API</button>
+            <button class="btn btn-secondary" onclick="forceReload()">🔄 Forcer Rechargement</button>
+        </div>
+
+        <!-- 1. AUTHENTIFICATION -->
+        <div class="section">
+            <h2>1️⃣ Authentification</h2>
+            <div id="auth-tests"></div>
+        </div>
+
+        <!-- 2. TABLEAU HTML -->
+        <div class="section">
+            <h2>2️⃣ Tableau HTML</h2>
+            <div id="table-tests"></div>
+        </div>
+
+        <!-- 3. SCRIPTS -->
+        <div class="section">
+            <h2>3️⃣ Scripts Chargés</h2>
+            <div id="script-tests"></div>
+        </div>
+
+        <!-- 4. API -->
+        <div class="section">
+            <h2>4️⃣ Test API</h2>
+            <div id="api-tests"></div>
+            <div id="commercants-list"></div>
+        </div>
+
+        <!-- 5. BACKEND -->
+        <div class="section">
+            <h2>5️⃣ Backend</h2>
+            <div id="backend-tests"></div>
+        </div>
+
+        <!-- LOGS -->
+        <div class="section">
+            <h2>📋 Logs Détaillés</h2>
+            <div class="log-box" id="logs"></div>
+        </div>
+    </div>
+
+    <script>
+        let logs = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString('fr-FR');
+            logs.push({ timestamp, message, type });
+            updateLogsDisplay();
+        }
+
+        function updateLogsDisplay() {
+            const logsEl = document.getElementById('logs');
+            logsEl.innerHTML = logs.map(l => 
+                `<div class="${l.type}">[${l.timestamp}] ${l.message}</div>`
+            ).join('');
+            logsEl.scrollTop = logsEl.scrollHeight;
+        }
+
+        function createTestItem(icon, label, value, status) {
+            return `
+                <div class="test-item">
+                    <span class="icon">${icon}</span>
+                    <span class="label">${label}</span>
+                    <span class="value status-${status}">${value}</span>
+                </div>
+            `;
+        }
+
+        // TEST 1: AUTHENTIFICATION
+        function testAuth() {
+            log('🔐 Test authentification...', 'info');
+            let html = '';
+            
+            const sessionToken = sessionStorage.getItem('auth_token');
+            const localToken = localStorage.getItem('token');
+            const sessionUser = sessionStorage.getItem('user');
+            const role = sessionStorage.getItem('role');
+
+            html += createTestItem(
+                sessionToken ? '✅' : '❌',
+                'sessionStorage.auth_token',
+                sessionToken ? sessionToken.substring(0, 20) + '...' : 'Absent',
+                sessionToken ? 'ok' : 'error'
+            );
+
+            html += createTestItem(
+                localToken ? '✅' : '⚠️',
+                'localStorage.token',
+                localToken ? localToken.substring(0, 20) + '...' : 'Absent',
+                localToken ? 'ok' : 'warning'
+            );
+
+            html += createTestItem(
+                sessionUser ? '✅' : '❌',
+                'sessionStorage.user',
+                sessionUser ? 'Présent' : 'Absent',
+                sessionUser ? 'ok' : 'error'
+            );
+
+            if (sessionUser) {
+                try {
+                    const user = JSON.parse(sessionUser);
+                    html += createTestItem(
+                        user.agence ? '✅' : '❌',
+                        'user.agence',
+                        user.agence || 'Non définie',
+                        user.agence ? 'ok' : 'error'
+                    );
+                    html += createTestItem(
+                        user.role === 'agent' ? '✅' : '⚠️',
+                        'user.role',
+                        user.role,
+                        user.role === 'agent' ? 'ok' : 'warning'
+                    );
+                    log(`✅ User: ${user.nom} (${user.role})`, 'success');
+                } catch (e) {
+                    log(`❌ Erreur parsing user: ${e.message}`, 'error');
+                }
+            }
+
+            html += createTestItem(
+                role ? '✅' : '⚠️',
+                'sessionStorage.role',
+                role || 'Absent',
+                role ? 'ok' : 'warning'
+            );
+
+            document.getElementById('auth-tests').innerHTML = html;
+        }
+
+        // TEST 2: TABLEAU HTML
+        function testTable() {
+            log('📊 Test tableau HTML...', 'info');
+            let html = '';
+
+            const tbody = document.getElementById('commercantsTableBody');
+            const section = document.getElementById('commercants-section');
+            
+            html += createTestItem(
+                tbody ? '✅' : '❌',
+                'Tableau #commercantsTableBody',
+                tbody ? 'Trouvé' : 'Non trouvé',
+                tbody ? 'ok' : 'error'
+            );
+
+            if (tbody) {
+                const rows = tbody.querySelectorAll('tr');
+                html += createTestItem(
+                    '📊',
+                    'Lignes dans le tableau',
+                    rows.length,
+                    rows.length > 0 ? 'ok' : 'warning'
+                );
+                log(`📊 Tableau trouvé avec ${rows.length} ligne(s)`, 'success');
+            } else {
+                log('❌ Tableau #commercantsTableBody non trouvé dans le DOM', 'error');
+            }
+
+            html += createTestItem(
+                section ? '✅' : '❌',
+                'Section #commercants-section',
+                section ? (section.style.display !== 'none' ? 'Visible' : 'Masquée') : 'Non trouvée',
+                section ? 'ok' : 'warning'
+            );
+
+            document.getElementById('table-tests').innerHTML = html;
+        }
+
+        // TEST 3: SCRIPTS
+        function testScripts() {
+            log('📜 Test scripts...', 'info');
+            let html = '';
+
+            const scripts = Array.from(document.querySelectorAll('script[src*="commercants-manager"]'));
+            
+            html += createTestItem(
+                scripts.length > 0 ? '✅' : '❌',
+                'commercants-manager.js',
+                scripts.length > 0 ? 'Chargé' : 'Non chargé',
+                scripts.length > 0 ? 'ok' : 'error'
+            );
+
+            if (scripts.length > 0) {
+                log(`✅ Script commercants-manager.js trouvé (${scripts.length} instance(s))`, 'success');
+            } else {
+                log('❌ Script commercants-manager.js non trouvé', 'error');
+            }
+
+            document.getElementById('script-tests').innerHTML = html;
+        }
+
+        // TEST 4: API
+        async function testAPI() {
+            log('📡 Test API /api/auth/users?role=commercant...', 'info');
+            const apiTestsEl = document.getElementById('api-tests');
+            const commercantsListEl = document.getElementById('commercants-list');
+            
+            apiTestsEl.innerHTML = '<div class="test-item"><span class="icon">⏳</span><span class="label">Chargement...</span></div>';
+
+            const token = sessionStorage.getItem('auth_token') || localStorage.getItem('token');
+            
+            if (!token) {
+                apiTestsEl.innerHTML = createTestItem('❌', 'Token', 'Aucun token disponible', 'error');
+                log('❌ Aucun token disponible pour tester l\'API', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:1000/api/auth/users?role=commercant', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                let html = '';
+                html += createTestItem(
+                    response.ok ? '✅' : '❌',
+                    'Status HTTP',
+                    response.status + ' ' + response.statusText,
+                    response.ok ? 'ok' : 'error'
+                );
+
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    html += createTestItem(
+                        result.success ? '✅' : '❌',
+                        'API Success',
+                        result.success ? 'true' : 'false',
+                        result.success ? 'ok' : 'error'
+                    );
+
+                    if (result.data) {
+                        html += createTestItem(
+                            result.data.length > 0 ? '✅' : '⚠️',
+                            'Nombre de commerçants',
+                            result.data.length,
+                            result.data.length > 0 ? 'ok' : 'warning'
+                        );
+
+                        log(`✅ API retourne ${result.data.length} commerçant(s)`, 'success');
+
+                        // Afficher la liste
+                        if (result.data.length > 0) {
+                            let listHtml = '<div class="commercants-list">';
+                            result.data.forEach((c, index) => {
+                                listHtml += `
+                                    <div class="commercant-item">
+                                        <div>${index + 1}.</div>
+                                        <div class="commercant-info">
+                                            <div class="commercant-name">${c.nom} ${c.prenom || ''}</div>
+                                            <div class="commercant-detail">📧 ${c.email}</div>
+                                            <div class="commercant-detail">📞 ${c.telephone || '-'}</div>
+                                            <div class="commercant-detail">🏢 Agence: ${c.agence || 'Non définie'}</div>
+                                            <div class="commercant-detail">🆔 ID: ${c._id}</div>
+                                            <div class="commercant-detail">📅 Créé: ${new Date(c.createdAt).toLocaleString('fr-FR')}</div>
+                                        </div>
+                                    </div>
+                                `;
+                                log(`   ${index + 1}. ${c.nom} ${c.prenom || ''} (${c.email})`, 'info');
+                            });
+                            listHtml += '</div>';
+                            commercantsListEl.innerHTML = listHtml;
+                        } else {
+                            commercantsListEl.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">Aucun commerçant dans la base de données</div>';
+                            log('⚠️ Aucun commerçant dans la base', 'warning');
+                        }
+                    }
+                } else {
+                    const text = await response.text();
+                    log(`❌ Erreur API ${response.status}: ${text}`, 'error');
+                }
+
+                apiTestsEl.innerHTML = html;
+
+            } catch (error) {
+                log(`❌ Erreur fetch: ${error.message}`, 'error');
+                apiTestsEl.innerHTML = createTestItem('❌', 'Erreur', error.message, 'error');
+            }
+        }
+
+        // TEST 5: BACKEND
+        async function testBackend() {
+            log('🖥️ Test backend...', 'info');
+            let html = '';
+
+            try {
+                const response = await fetch('http://localhost:1000/api/health', { method: 'GET' });
+                html += createTestItem(
+                    response.ok ? '✅' : '❌',
+                    'Backend (port 1000)',
+                    response.ok ? 'En ligne' : 'Hors ligne',
+                    response.ok ? 'ok' : 'error'
+                );
+                log(response.ok ? '✅ Backend répond' : '❌ Backend ne répond pas', response.ok ? 'success' : 'error');
+            } catch (error) {
+                html += createTestItem('❌', 'Backend (port 1000)', 'Hors ligne', 'error');
+                log('❌ Backend inaccessible: ' + error.message, 'error');
+            }
+
+            document.getElementById('backend-tests').innerHTML = html;
+        }
+
+        // DIAGNOSTIC COMPLET
+        async function runFullDiagnostic() {
+            logs = [];
+            log('========================================', 'info');
+            log('🔍 DIAGNOSTIC COMPLET - DÉBUT', 'info');
+            log('========================================', 'info');
+            
+            testAuth();
+            testTable();
+            testScripts();
+            await testBackend();
+            await testAPI();
+            
+            log('========================================', 'info');
+            log('🔍 DIAGNOSTIC COMPLET - FIN', 'info');
+            log('========================================', 'info');
+        }
+
+        // FORCER RECHARGEMENT
+        function forceReload() {
+            if (confirm('Recharger la page complète ?')) {
+                location.reload();
+            }
+        }
+
+        // LANCER AU CHARGEMENT
+        window.addEventListener('load', () => {
+            log('📄 Page de diagnostic chargée', 'success');
+            log('💡 Cliquez sur "Lancer Diagnostic Complet" pour commencer', 'info');
+        });
+    </script>
+</body>
+</html>

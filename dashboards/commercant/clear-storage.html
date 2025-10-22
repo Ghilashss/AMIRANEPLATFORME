@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nettoyage LocalStorage - Commerçant</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0b2b24 0%, #1a4a3d 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+      animation: slideIn 0.5s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #0b2b24 0%, #1a4a3d 100%);
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 40px;
+    }
+
+    h1 {
+      color: #0b2b24;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    p {
+      color: #666;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .status {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+
+    .status h3 {
+      color: #0b2b24;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+
+    .storage-item {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .storage-item strong {
+      color: #333;
+      font-size: 14px;
+    }
+
+    .storage-item span {
+      color: #666;
+      font-size: 13px;
+      font-family: monospace;
+    }
+
+    .btn {
+      padding: 15px 30px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin: 5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-clear {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-clear:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    }
+
+    .btn-back {
+      background: linear-gradient(135deg, #0b2b24 0%, #1a4a3d 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(11, 43, 36, 0.3);
+    }
+
+    .btn-back:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(11, 43, 36, 0.4);
+    }
+
+    .alert {
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: none;
+      animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .alert-success {
+      background: #d1fae5;
+      color: #065f46;
+      border-left: 4px solid #10b981;
+    }
+
+    .alert-info {
+      background: #dbeafe;
+      color: #1e3a8a;
+      border-left: 4px solid #3b82f6;
+    }
+
+    .alert i {
+      margin-right: 10px;
+    }
+  </style>
+    <!-- Configuration API (OBLIGATOIRE EN PREMIER) -->
+    <script src="/dashboards/config.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">
+      <i class="fas fa-broom"></i>
+    </div>
+    
+    <h1>Nettoyage LocalStorage</h1>
+    <p>Résolvez les problèmes de connexion en nettoyant les données stockées localement.</p>
+
+    <div id="alert" class="alert"></div>
+
+    <div class="status">
+      <h3><i class="fas fa-database"></i> Données Actuelles</h3>
+      <div id="storageItems"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-clear" onclick="clearStorage()">
+        <i class="fas fa-trash-alt"></i>
+        Nettoyer Tout
+      </button>
+      <button class="btn btn-back" onclick="goToLogin()">
+        <i class="fas fa-arrow-left"></i>
+        Retour à la Connexion
+      </button>
+    </div>
+  </div>
+
+  <script>
+    function showAlert(message, type = 'success') {
+      const alert = document.getElementById('alert');
+      alert.className = `alert alert-${type}`;
+      alert.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i> ${message}`;
+      alert.style.display = 'block';
+      
+      setTimeout(() => {
+        alert.style.display = 'none';
+      }, 5000);
+    }
+
+    function displayStorageItems() {
+      const container = document.getElementById('storageItems');
+      const items = [
+        { key: 'commercant_token', label: 'Token Commerçant', storage: 'local' },
+        { key: 'commercant_user', label: 'User Commerçant', storage: 'local' },
+        { key: 'commercant_role', label: 'Rôle Commerçant', storage: 'local' },
+        { key: 'auth_token', label: 'Auth Token (Session)', storage: 'session' },
+        { key: 'user', label: 'User (Session)', storage: 'session' },
+        { key: 'role', label: 'Role (Session)', storage: 'session' },
+        { key: 'token', label: 'Token Générique', storage: 'local' },
+        { key: 'user', label: 'User Générique', storage: 'local' }
+      ];
+
+      let html = '';
+      let hasData = false;
+
+      items.forEach(item => {
+        const storageObj = item.storage === 'session' ? sessionStorage : localStorage;
+        const value = storageObj.getItem(item.key);
+        if (value) {
+          hasData = true;
+          const displayValue = value.length > 50 ? value.substring(0, 50) + '...' : value;
+          html += `
+            <div class="storage-item">
+              <strong>${item.label}</strong>
+              <span>${displayValue}</span>
+            </div>
+          `;
+        }
+      });
+
+      if (!hasData) {
+        html = `
+          <div class="storage-item">
+            <strong style="color: #10b981;">
+              <i class="fas fa-check-circle"></i> Aucune donnée stockée
+            </strong>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+    }
+
+    function clearStorage() {
+      if (!confirm('Êtes-vous sûr de vouloir nettoyer toutes les données ?')) {
+        return;
+      }
+
+      // Nettoyer localStorage - clés spécifiques au commerçant
+      localStorage.removeItem('commercant_token');
+      localStorage.removeItem('commercant_user');
+      localStorage.removeItem('commercant_role');
+      
+      // Nettoyer localStorage - clés génériques (au cas où)
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+
+      // Nettoyer sessionStorage - utilisé par colis-form-handler.js
+      sessionStorage.removeItem('auth_token');
+      sessionStorage.removeItem('user');
+      sessionStorage.removeItem('role');
+
+      console.log('✅ LocalStorage et SessionStorage nettoyés');
+      
+      showAlert('✅ Données nettoyées avec succès !', 'success');
+      displayStorageItems();
+
+      // Rediriger automatiquement après 2 secondes
+      setTimeout(() => {
+        window.location.href = 'commercant-login.html';
+      }, 2000);
+    }
+
+    function goToLogin() {
+      window.location.href = 'commercant-login.html';
+    }
+
+    // Afficher les données au chargement
+    window.addEventListener('load', function() {
+      console.log('🧹 Page de nettoyage chargée');
+      displayStorageItems();
+      
+      // Vérifier s'il y a des données
+      const hasLocalToken = localStorage.getItem('commercant_token') || localStorage.getItem('token');
+      const hasSessionToken = sessionStorage.getItem('auth_token');
+      
+      if (hasLocalToken || hasSessionToken) {
+        showAlert('Des données ont été trouvées. Nettoyez-les pour résoudre les problèmes.', 'info');
+      } else {
+        showAlert('Aucune donnée trouvée. Vous pouvez retourner à la connexion.', 'success');
+      }
+    });
+  </script>
+</body>
+</html>

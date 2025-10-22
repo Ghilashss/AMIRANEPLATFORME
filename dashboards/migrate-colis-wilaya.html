@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migration Wilaya Expéditeur</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #2196F3;
+        }
+        .success {
+            background: #e8f5e9;
+            border-left-color: #4CAF50;
+        }
+        .warning {
+            background: #fff3e0;
+            border-left-color: #ff9800;
+        }
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-box {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2196F3;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        #log {
+            background: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin-top: 20px;
+            display: none;
+        }
+        #log.show {
+            display: block;
+        }
+    </style>
+    <!-- Configuration API (OBLIGATOIRE EN PREMIER) -->
+    <script src="/dashboards/config.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Migration Wilaya Expéditeur</h1>
+        
+        <div class="info">
+            <strong>📋 Ce que fait ce script :</strong>
+            <ul>
+                <li>Lit tous les colis dans localStorage</li>
+                <li>Pour chaque colis, extrait la wilaya du bureau source</li>
+                <li>Ajoute les champs: <code>wilayaSource</code>, <code>wilayaExp</code>, <code>wilayaExpediteur</code></li>
+                <li>Sauvegarde les colis mis à jour</li>
+            </ul>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-number" id="totalColis">0</div>
+                <div class="stat-label">Colis Total</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="needUpdate">0</div>
+                <div class="stat-label">À Migrer</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="updated">0</div>
+                <div class="stat-label">Migrés</div>
+            </div>
+        </div>
+
+        <button onclick="analyzeData()">📊 Analyser les Données</button>
+        <button onclick="migrateData()" style="background: #4CAF50; display: none;" id="migrateBtn">
+            ✅ Migrer les Données
+        </button>
+
+        <div id="log"></div>
+    </div>
+
+    <script>
+        let colisData = [];
+        let agencesData = [];
+        let needsUpdateCount = 0;
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            logDiv.classList.add('show');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff5252' : type === 'success' ? '#69f0ae' : '#aed581';
+            logDiv.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function getWilayaFromBureau(bureauCode) {
+            if (!bureauCode) return null;
+            const agence = agencesData.find(ag => ag.code === bureauCode);
+            return agence ? agence.wilaya : null;
+        }
+
+        function analyzeData() {
+            log('🔍 Analyse des données...', 'info');
+            
+            // Charger les colis
+            try {
+                const colisStr = localStorage.getItem('colis');
+                colisData = colisStr ? JSON.parse(colisStr) : [];
+                document.getElementById('totalColis').textContent = colisData.length;
+                log(`✅ ${colisData.length} colis trouvés`, 'success');
+            } catch (error) {
+                log(`❌ Erreur lors du chargement des colis: ${error.message}`, 'error');
+                return;
+            }
+
+            // Charger les agences
+            try {
+                const agencesStr = localStorage.getItem('agences');
+                agencesData = agencesStr ? JSON.parse(agencesStr) : [];
+                log(`✅ ${agencesData.length} agences trouvées`, 'success');
+            } catch (error) {
+                log(`❌ Erreur lors du chargement des agences: ${error.message}`, 'error');
+                return;
+            }
+
+            // Analyser quels colis ont besoin de migration
+            needsUpdateCount = 0;
+            colisData.forEach((colis, index) => {
+                const hasWilayaSource = colis.wilayaSource || colis.wilayaExp || colis.wilayaExpediteur;
+                if (!hasWilayaSource && colis.bureauSource) {
+                    needsUpdateCount++;
+                    log(`📦 Colis ${index + 1} (${colis.reference || colis.id}) - Bureau: ${colis.bureauSource} - Besoin de migration`, 'info');
+                }
+            });
+
+            document.getElementById('needUpdate').textContent = needsUpdateCount;
+            
+            if (needsUpdateCount > 0) {
+                log(`\n⚠️ ${needsUpdateCount} colis ont besoin de migration`, 'info');
+                document.getElementById('migrateBtn').style.display = 'block';
+            } else {
+                log(`\n✅ Tous les colis ont déjà la wilaya expéditeur!`, 'success');
+            }
+        }
+
+        function migrateData() {
+            if (!confirm(`Voulez-vous migrer ${needsUpdateCount} colis?`)) {
+                return;
+            }
+
+            log('\n🚀 Début de la migration...', 'info');
+            let updatedCount = 0;
+
+            colisData.forEach((colis, index) => {
+                const hasWilayaSource = colis.wilayaSource || colis.wilayaExp || colis.wilayaExpediteur;
+                
+                if (!hasWilayaSource && colis.bureauSource) {
+                    const wilayaSource = getWilayaFromBureau(colis.bureauSource);
+                    
+                    if (wilayaSource) {
+                        colis.wilayaSource = wilayaSource;
+                        colis.wilayaExp = wilayaSource;
+                        colis.wilayaExpediteur = wilayaSource;
+                        updatedCount++;
+                        log(`✅ Colis ${index + 1} (${colis.reference || colis.id}) - Wilaya: ${wilayaSource}`, 'success');
+                    } else {
+                        log(`⚠️ Colis ${index + 1} - Bureau ${colis.bureauSource} non trouvé`, 'error');
+                    }
+                }
+            });
+
+            // Sauvegarder les modifications
+            try {
+                localStorage.setItem('colis', JSON.stringify(colisData));
+                document.getElementById('updated').textContent = updatedCount;
+                log(`\n✅ Migration terminée! ${updatedCount} colis mis à jour`, 'success');
+                log('🔄 Rechargez votre dashboard pour voir les changements', 'info');
+                
+                // Cacher le bouton migrer
+                document.getElementById('migrateBtn').style.display = 'none';
+            } catch (error) {
+                log(`❌ Erreur lors de la sauvegarde: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-analyse au chargement
+        window.addEventListener('load', () => {
+            setTimeout(analyzeData, 500);
+        });
+    </script>
+</body>
+</html>

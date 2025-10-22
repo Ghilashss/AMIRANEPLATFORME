@@ -1,0 +1,386 @@
+/* Format 10x15 cm - VERSION OPTIMISÉE COMPACTE */
+.ticket-wrapper {
+    width: 10cm;
+    height: 15cm;
+    padding: 2mm; /* Réduit de 3mm à 2mm */
+    margin: 0 auto;
+    background: white;
+    font-family: 'Arial Narrow', Arial, sans-serif; /* Police plus étroite */
+    box-sizing: border-box;
+    position: relative;
+    border: 1px solid #000; /* Bordure plus fine */
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+    page-break-after: avoid;
+    page-break-before: avoid;
+    page-break-inside: avoid;
+}
+
+/* Date en haut - Plus compact */
+.ticket-date-header {
+    text-align: left;
+    font-size: 5pt; /* Réduit de 6pt à 5pt */
+    margin-bottom: 1mm; /* Réduit */
+    font-weight: bold;
+    line-height: 1;
+}
+
+/* En-tête avec logo à gauche et infos à droite */
+.ticket-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2mm; /* Réduit de 2mm */
+}
+
+.header-left {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.header-logo {
+    height: 8mm; /* Réduit de 10mm */
+    margin-bottom: 1mm;
+}
+
+.ticket-header h2 {
+    font-size: 8pt; /* Réduit de 10pt */
+    font-weight: bold;
+    margin: 0;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+.header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.ticket-number {
+    font-size: 14pt; /* Réduit de 16pt */
+    font-weight: bold;
+    line-height: 1;
+}
+
+.wilaya-info {
+    text-align: right;
+    margin-top: 1mm;
+}
+
+.wilaya-info div {
+    font-size: 6pt; /* Réduit de 7pt */
+    font-weight: bold;
+    line-height: 1.1;
+}
+
+/* Bordures spécifiques pour le code AG2 (destCodeHeader) */
+#destCodeHeader {
+    border: 1px solid #000; /* Bordure plus fine */
+    padding: 1mm 2mm; /* Réduit */
+    margin-top: 0.5mm;
+    background: #fff;
+    font-size: 8pt !important; /* Réduit de 9pt */
+    font-weight: bold;
+    display: inline-block;
+    min-width: 12mm; /* Réduit de 15mm */
+    text-align: center;
+    line-height: 1;
+}
+
+#destWilayaHeader {
+    font-size: 6pt; /* Réduit de 7pt */
+    font-weight: bold;
+    margin-bottom: 0.5mm;
+}
+
+/* Sections d'information - Plus compactes */
+.info-section {
+    margin-bottom: 1.5mm; /* Réduit de 1.5mm */
+    line-height: 1.1; /* Réduit de 1.2 */
+    padding: 1.5mm; /* Réduit de 1.5mm */
+    border: 0.5px solid #000; /* Bordure plus fine */
+    background: #fff;
+}
+
+.info-section p {
+    margin: 0.5mm 0; /* Réduit */
+    font-size: 5.5pt; /* Réduit de 6pt */
+    line-height: 1.2;
+}
+
+.info-section strong {
+    font-weight: bold;
+}
+
+.section-title-simple {
+    font-size: 6.5pt; /* Réduit de 7pt */
+    font-weight: bold;
+    margin-bottom: 1mm; /* Réduit */
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+/* ID Colis centré - Plus compact */
+.colis-id-section {
+    text-align: center;
+    margin: 1.5mm 0; /* Réduit */
+    padding: 1.5mm; /* Réduit */
+    border: 0.5px solid #000; /* Bordure plus fine */
+    background: #fff;
+}
+
+.colis-id-section p {
+    margin: 0;
+    font-size: 6pt; /* Réduit de 7pt */
+    font-weight: bold;
+    line-height: 1.1;
+}
+
+/* Détails section - Plus compact */
+.details-section {
+    background: #f9f9f9;
+    padding: 1.5mm; /* Réduit */
+    border: 0.5px solid #000 !important; /* Bordure plus fine */
+    margin-bottom: 1.5mm;
+}
+
+/* Code-barres - Optimisé */
+.barcode-section {
+    text-align: center;
+    margin: 1.5mm 0; /* Réduit */
+    padding: 1mm; /* Réduit */
+    border: 0.5px solid #000; /* Bordure plus fine */
+    background: #fff;
+}
+
+#barcode,
+#ticket-barcode {
+    max-width: 100%;
+    height: 50px; /* Réduit de 60px */
+    display: block;
+    margin: 0 auto;
+}
+
+.barcode-text {
+    font-size: 5.5pt; /* Réduit de 6pt */
+    font-weight: bold;
+    margin-top: 1mm; /* Réduit */
+    line-height: 1;
+}
+
+/* Déclaration en arabe - Plus compacte */
+.declaration-ar {
+    direction: rtl;
+    text-align: right;
+    font-size: 4.5pt; /* Réduit de 5pt */
+    line-height: 1.2; /* Réduit de 1.3 */
+    margin: 1mm 0; /* Réduit */
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+
+.declaration-ar p {
+    margin: 0;
+    line-height: 1.2;
+}
+
+.declaration-ar .tracking-hash {
+    text-align: center;
+    font-size: 6pt; /* Réduit de 7pt */
+    font-weight: bold;
+    margin-bottom: 1mm; /* Réduit */
+    direction: ltr;
+    color: #000;
+}
+
+/* Section signature - Plus compacte */
+.signature-section {
+    text-align: right;
+    margin-top: 2mm; /* Réduit */
+    margin-bottom: 1.5mm; /* Réduit */
+}
+
+.signature-section p {
+    margin: 0.5mm 0; /* Réduit */
+    font-size: 5.5pt; /* Réduit de 6pt */
+    line-height: 1.1;
+}
+
+.signature-section .sig-date {
+    text-align: right;
+    margin-bottom: 0.5mm; /* Réduit */
+}
+
+.signature-section .sig-label {
+    text-align: right;
+    margin-bottom: 1mm; /* Réduit */
+}
+
+.signature-line {
+    width: 25mm; /* Réduit de 30mm */
+    height: 5mm; /* Réduit de 6mm */
+    margin-left: auto;
+    margin-top: 1mm; /* Réduit */
+    border: 0.5px solid #000;
+}
+
+/* Boutons */
+.no-print {
+    text-align: center;
+    margin-top: 1cm;
+    padding: 1cm;
+}
+
+.print-btn, .close-btn {
+    padding: 0.5cm 1.5cm;
+    margin: 0 0.5cm;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12pt;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.print-btn {
+    background: #000;
+    color: white;
+}
+
+.print-btn:hover {
+    background: #333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.close-btn {
+    background: #e0e0e0;
+    color: #000;
+}
+
+.close-btn:hover {
+    background: #ccc;
+    transform: translateY(-2px);
+}
+
+/* Style d'impression - Format 10x15 cm (100x150 mm) */
+@media print {
+    @page {
+        size: 100mm 150mm; /* Format étiquette 10x15 cm */
+        margin: 0;
+        padding: 0;
+    }
+
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100mm !important;
+        height: 150mm !important;
+        overflow: hidden !important;
+    }
+
+    body * {
+        visibility: hidden;
+    }
+    
+    #ticketColisPrint,
+    #ticketColisPrint * {
+        visibility: visible;
+    }
+
+    #ticketColisPrint {
+        display: block !important;
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100mm !important;
+        height: 150mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        overflow: hidden !important;
+        z-index: 10000 !important;
+    }
+
+    .ticket-wrapper {
+        display: block !important;
+        width: 100mm !important;
+        height: 150mm !important;
+        min-width: 100mm !important;
+        min-height: 150mm !important;
+        max-width: 100mm !important;
+        max-height: 150mm !important;
+        position: relative !important; /* Changé de absolute à relative */
+        left: 0 !important;
+        top: 0 !important;
+        margin: 0 auto !important; /* Centré horizontalement */
+        padding: 2mm !important; /* Utilise padding optimisé */
+        border: 1px solid #000 !important; /* Bordure fine optimisée */
+        box-sizing: border-box !important;
+        background: white !important;
+        print-color-adjust: exact !important;
+        -webkit-print-color-adjust: exact !important;
+        overflow: hidden !important;
+        page-break-after: avoid !important;
+        page-break-before: avoid !important;
+        page-break-inside: avoid !important;
+        transform: none !important; /* Pas de transformation */
+        transform-origin: top left !important;
+    }
+
+    .no-print {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    .info-section {
+        border: 1px solid #000 !important;
+        background-color: #fff !important;
+        print-color-adjust: exact !important;
+        -webkit-print-color-adjust: exact !important;
+    }
+
+    .colis-id-section {
+        border: 1px solid #000 !important;
+        background-color: #fff !important;
+        print-color-adjust: exact !important;
+        -webkit-print-color-adjust: exact !important;
+    }
+
+    .barcode-section {
+        border: 1px solid #000 !important;
+        background-color: #fff !important;
+        print-color-adjust: exact !important;
+        -webkit-print-color-adjust: exact !important;
+    }
+
+    #barcode,
+    #ticket-barcode {
+        max-width: 100% !important;
+        height: 60px !important;
+        display: block !important;
+        margin: 0 auto !important;
+    }
+
+    .details-section {
+        border: 1px solid #000 !important;
+        background-color: #f9f9f9 !important;
+        print-color-adjust: exact !important;
+        -webkit-print-color-adjust: exact !important;
+    }
+
+    .declaration-ar {
+        print-color-adjust: exact !important;
+        -webkit-print-color-adjust: exact !important;
+    }
+}
+
+/* Style responsive pour l'écran */
+@media screen {
+    #ticketColisPrint {
+        overflow-y: auto;
+    }
+}

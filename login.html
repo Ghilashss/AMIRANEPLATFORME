@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Branding gauche -->
+    <div class="branding">
+      <img src="logo.png" alt="Logo">
+      <h1 id="login-role-title">Connexion</h1>
+      <p id="branding-text">Espace sécurisé.</p>
+    </div>
+
+    <!-- Formulaire droite -->
+    <div class="roles">
+      <form id="login-form" class="login-form">
+        <h2>Connexion</h2>
+        <label>Email :</label>
+        <input type="email" name="email" required><br>
+        <label>Mot de passe :</label>
+        <input type="password" name="password" required><br>
+        <button type="submit">Se connecter</button>
+      </form>
+
+      <div class="form-links">
+        <a href="#">Mot de passe oublié ?</a>
+        <a href="index.html">Retour</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charger config.js en premier -->
+  <script src="config.js"></script>
+  <script src="auth-service.js"></script>
+  
+  <script>
+    // Configuration API depuis config.js global
+    const API_URL = window.API_CONFIG ? window.API_CONFIG.API_URL : 'http://localhost:1000/api';
+    console.log('🔑 Login - API URL utilisée:', API_URL);
+
+    // Personnalisation du titre et du texte selon le rôle
+    const params = new URLSearchParams(window.location.search);
+    const role = params.get('role');
+    let titre = "Connexion";
+    let texte = "Espace sécurisé.";
+    if(role === "admin") {
+      titre = "Connexion Admin";
+      texte = "Bienvenue sur l'espace administrateur.";
+    } else if(role === "agence") {
+      titre = "Connexion Agence";
+      texte = "Bienvenue sur l'espace agence.";
+    } else if(role === "agent") {
+      titre = "Connexion Agent";
+      texte = "Bienvenue sur l'espace agent.";
+    }
+    document.getElementById('login-role-title').textContent = titre;
+    document.getElementById('branding-text').textContent = texte;
+
+    // 🔐 Gestion du login
+    document.getElementById('login-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const email = this.email.value;
+      const password = this.password.value;
+      const submitButton = this.querySelector('button[type="submit"]');
+      
+      // Désactiver le bouton pendant la requête
+      submitButton.disabled = true;
+      submitButton.textContent = 'Connexion...';
+
+      try {
+        console.log('🔵 Tentative de connexion à:', API_URL + '/auth/login');
+        
+        const response = await fetch(API_URL + '/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+        console.log('📦 Réponse reçue:', data);
+
+        if (data.success && data.data) {
+          const userData = data.data;
+          
+          console.log('✅ Connexion réussie');
+          console.log('👤 Rôle:', userData.role);
+          console.log('📧 Email:', userData.email);
+          
+          // Stocker les données d'authentification
+          sessionStorage.setItem('auth_token', userData.token);
+          sessionStorage.setItem('user', JSON.stringify(userData));
+          sessionStorage.setItem('role', userData.role);
+          
+          // Aussi dans localStorage pour persistance
+          localStorage.setItem('auth_token', userData.token);
+          localStorage.setItem('user', JSON.stringify(userData));
+          localStorage.setItem('role', userData.role);
+          
+          console.log('✅ Token stocké');
+          
+          // Redirection selon le rôle
+          let dashboardUrl = '';
+          switch(userData.role) {
+            case 'admin':
+              dashboardUrl = '/admin/admin-dashboard.html';
+              break;
+            case 'agent':
+              dashboardUrl = '/agent/agent-dashboard.html';
+              break;
+            case 'agence':
+              dashboardUrl = '/agence/agence-dashboard.html';
+              break;
+            case 'commercant':
+              dashboardUrl = '/commercant/commercant-dashboard.html';
+              break;
+            default:
+              throw new Error('Rôle inconnu: ' + userData.role);
+          }
+          
+          console.log('🔄 Redirection vers:', dashboardUrl);
+          window.location.href = dashboardUrl;
+          
+        } else {
+          alert(data.message || 'Identifiants incorrects.');
+          submitButton.disabled = false;
+          submitButton.textContent = 'Se connecter';
+        }
+        
+      } catch (error) {
+        console.error('❌ Erreur de connexion:', error);
+        alert('Erreur de connexion au serveur. Vérifiez que le backend est démarré.');
+        submitButton.disabled = false;
+        submitButton.textContent = 'Se connecter';
+      }
+    });
+  </script>
+</body>
+</html>

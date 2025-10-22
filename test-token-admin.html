@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🧪 Test Token Admin</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 900px;
+      margin: 50px auto;
+      padding: 30px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    h1 {
+      color: #667eea;
+      margin: 0 0 30px 0;
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 15px;
+    }
+    .status {
+      padding: 20px;
+      border-radius: 10px;
+      margin: 15px 0;
+      font-weight: bold;
+    }
+    .success {
+      background: #d4edda;
+      color: #155724;
+      border: 2px solid #c3e6cb;
+    }
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 2px solid #f5c6cb;
+    }
+    .info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 2px solid #bee5eb;
+    }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      margin: 10px 5px;
+      transition: all 0.3s;
+    }
+    button:hover {
+      background: #764ba2;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    .code {
+      background: #f4f4f4;
+      padding: 15px;
+      border-radius: 5px;
+      font-family: 'Courier New', monospace;
+      overflow-x: auto;
+      margin: 10px 0;
+    }
+    .icon {
+      font-size: 30px;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><span class="icon">🧪</span>Test Token Admin</h1>
+    
+    <div class="info">
+      <strong>📋 Ce test vérifie :</strong>
+      <ul>
+        <li>✅ Présence du token dans sessionStorage</li>
+        <li>✅ Présence du token dans localStorage (ancien système)</li>
+        <li>✅ Fonctionnement de data-store.js</li>
+        <li>✅ Accès à l'API avec le token</li>
+      </ul>
+    </div>
+
+    <button onclick="checkTokens()">🔍 Vérifier les Tokens</button>
+    <button onclick="testDataStore()">📦 Tester DataStore</button>
+    <button onclick="testAPI()">🌐 Tester API</button>
+    <button onclick="clearAll()">🗑️ Tout Effacer</button>
+
+    <div id="results"></div>
+  </div>
+
+  <script>
+    function log(message, type = 'info') {
+      const results = document.getElementById('results');
+      const div = document.createElement('div');
+      div.className = `status ${type}`;
+      div.innerHTML = message;
+      results.appendChild(div);
+    }
+
+    function clearResults() {
+      document.getElementById('results').innerHTML = '';
+    }
+
+    function checkTokens() {
+      clearResults();
+      log('🔍 <strong>Vérification des tokens...</strong>', 'info');
+
+      // sessionStorage (nouveau système)
+      const sessionToken = sessionStorage.getItem('auth_token');
+      if (sessionToken) {
+        log(`✅ <strong>sessionStorage.auth_token</strong> trouvé !<div class="code">${sessionToken.substr(0, 50)}...</div>`, 'success');
+      } else {
+        log('❌ <strong>sessionStorage.auth_token</strong> non trouvé', 'error');
+      }
+
+      // localStorage admin_token (ancien système)
+      const localAdminToken = localStorage.getItem('admin_token');
+      if (localAdminToken) {
+        log(`✅ <strong>localStorage.admin_token</strong> trouvé !<div class="code">${localAdminToken.substr(0, 50)}...</div>`, 'success');
+      } else {
+        log('❌ <strong>localStorage.admin_token</strong> non trouvé', 'error');
+      }
+
+      // localStorage token (très ancien système)
+      const localToken = localStorage.getItem('token');
+      if (localToken) {
+        log(`⚠️ <strong>localStorage.token</strong> trouvé (ancien système)<div class="code">${localToken.substr(0, 50)}...</div>`, 'info');
+      }
+
+      if (!sessionToken && !localAdminToken && !localToken) {
+        log('❌ <strong>AUCUN TOKEN TROUVÉ</strong> - Vous devez vous connecter !', 'error');
+      }
+    }
+
+    function testDataStore() {
+      clearResults();
+      log('📦 <strong>Test de DataStore.getAdminToken()...</strong>', 'info');
+
+      try {
+        // Simuler le code de data-store.js
+        let token = sessionStorage.getItem('auth_token');
+        
+        if (!token) {
+          token = localStorage.getItem('admin_token');
+        }
+
+        if (!token) {
+          log('❌ <strong>DataStore ne trouve aucun token</strong> - Session expirée !', 'error');
+          return;
+        }
+
+        log(`✅ <strong>DataStore a trouvé un token !</strong><div class="code">${token.substr(0, 50)}...</div>`, 'success');
+      } catch (error) {
+        log(`❌ <strong>Erreur DataStore :</strong> ${error.message}`, 'error');
+      }
+    }
+
+    async function testAPI() {
+      clearResults();
+      log('🌐 <strong>Test de l\'API /auth/me...</strong>', 'info');
+
+      let token = sessionStorage.getItem('auth_token') || localStorage.getItem('admin_token');
+
+      if (!token) {
+        log('❌ <strong>Aucun token disponible</strong> - Connectez-vous d\'abord !', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:1000/api/auth/me', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.data) {
+          log(`✅ <strong>API répond correctement !</strong><div class="code">Nom: ${data.data.nom || 'N/A'}<br>Email: ${data.data.email}<br>Rôle: ${data.data.role}</div>`, 'success');
+          
+          if (data.data.role !== 'admin') {
+            log(`⚠️ <strong>Attention :</strong> Vous êtes connecté en tant que "${data.data.role}", pas "admin"`, 'error');
+          }
+        } else {
+          log(`❌ <strong>Erreur API :</strong> ${data.message || 'Réponse invalide'}`, 'error');
+        }
+      } catch (error) {
+        log(`❌ <strong>Erreur réseau :</strong> ${error.message}<br>Le serveur backend est-il démarré ?`, 'error');
+      }
+    }
+
+    function clearAll() {
+      if (confirm('⚠️ Voulez-vous vraiment supprimer TOUS les tokens ?\n\nVous devrez vous reconnecter.')) {
+        sessionStorage.clear();
+        localStorage.clear();
+        clearResults();
+        log('🗑️ <strong>Tous les tokens ont été supprimés</strong>', 'success');
+        log('👉 Reconnectez-vous via <a href="/login.html?role=admin">login.html?role=admin</a>', 'info');
+      }
+    }
+
+    // Exécuter le test au chargement
+    window.addEventListener('DOMContentLoaded', () => {
+      log('🚀 <strong>Page de test chargée</strong>', 'info');
+      checkTokens();
+    });
+  </script>
+</body>
+</html>
