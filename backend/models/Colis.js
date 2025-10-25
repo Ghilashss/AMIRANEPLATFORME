@@ -222,4 +222,123 @@ colisSchema.pre('save', function(next) {
   next();
 });
 
+// ========================================
+// LOGIQUE AUTOMATIQUE DE CAISSE
+// ========================================
+// Créer automatiquement des transactions financières lors du changement de statut
+colisSchema.post('save', async function(doc) {
+  try {
+    // Vérifier si le statut a changé
+    if (!doc.isModified('status')) return;
+    
+    const TransactionFinanciere = require('./TransactionFinanciere');
+    const Compte = require('./Compte');
+    const User = require('./User');
+    
+    // Récupérer les comptes concernés
+    const commercant = await User.findById(doc.expediteur.id);
+    if (!commercant) return;
+    
+    const compteCommercant = await Compte.findOne({ user: commercant._id });
+    if (!compteCommercant) return;
+    
+    const agence = await require('./Agence').findById(doc.agence);
+    if (!agence) return;
+    
+    // Trouver l'utilisateur admin de l'agence
+    const agentAgence = await User.findOne({ agence: agence._id, role: 'agent' }).limit(1);
+    if (!agentAgence) return;
+    
+    const compteAgence = await Compte.findOne({ user: agentAgence._id });
+    
+    // Trouver le compte admin
+    const admin = await User.findOne({ role: 'admin' }).limit(1);
+    const compteAdmin = admin ? await Compte.findOne({ user: admin._id }) : null;
+    
+    // ========================================
+    // CAS 1: COLIS LIVRÉ
+    // ========================================
+    if (doc.status === 'livre') {
+      // Transaction: Agence paie le commerçant (prix du colis)
+      const transactionLivraison = await TransactionFinanciere.create({
+        typeTransaction: 'livraison_commercant',
+        montant: doc.montant || 0,
+        debit_id: compteAgence?._id,
+        debit_nom: agence.nom,
+        credit_id: compteCommercant._id,
+        credit_nom: commercant.nom,
+        referenceColis: doc._id,
+        codeColis: doc.tracking,
+        statut: 'validee', // Auto-validé
+        description: `Paiement colis livré ${doc.tracking} - Montant: ${doc.montant} DA`,
+        methode: 'automatique',
+        metadata: {
+          prixColis: doc.montant,
+          fraisLivraison: doc.fraisLivraison,
+          wilayaSource: doc.expediteur.wilaya,
+          wilayaDestination: doc.destinataire.wilaya
+        }
+      });
+      
+      console.log(`✅ Transaction créée: Commerçant reçoit ${doc.montant} DA pour colis ${doc.tracking}`);
+      
+      // Transaction: Agence doit verser les frais de livraison à l'admin
+      if (compteAdmin && doc.fraisLivraison > 0) {
+        await TransactionFinanciere.create({
+          typeTransaction: 'frais_vers_admin',
+          montant: doc.fraisLivraison,
+          debit_id: compteAgence?._id,
+          debit_nom: agence.nom,
+          credit_id: compteAdmin._id,
+          credit_nom: 'Admin',
+          referenceColis: doc._id,
+          codeColis: doc.tracking,
+          statut: 'en_attente', // Attend validation agence
+          description: `Frais de livraison ${doc.tracking} - Montant: ${doc.fraisLivraison} DA`,
+          methode: 'automatique',
+          metadata: {
+            fraisLivraison: doc.fraisLivraison,
+            wilayaSource: doc.expediteur.wilaya,
+            wilayaDestination: doc.destinataire.wilaya
+          }
+        });
+        
+        console.log(`✅ Transaction créée: Agence doit verser ${doc.fraisLivraison} DA à l'admin`);
+      }
+    }
+    
+    // ========================================
+    // CAS 2: COLIS RETOURNÉ
+    // ========================================
+    if (doc.status === 'retourne') {
+      // Le commerçant doit payer les frais de retour à l'agence
+      const fraisRetour = doc.fraisRetour || doc.fraisLivraison || 0;
+      
+      await TransactionFinanciere.create({
+        typeTransaction: 'retour_vers_agence',
+        montant: fraisRetour,
+        debit_id: compteCommercant._id,
+        debit_nom: commercant.nom,
+        credit_id: compteAgence?._id,
+        credit_nom: agence.nom,
+        referenceColis: doc._id,
+        codeColis: doc.tracking,
+        statut: 'validee', // Auto-validé
+        description: `Frais de retour colis ${doc.tracking} - Montant: ${fraisRetour} DA`,
+        methode: 'automatique',
+        metadata: {
+          fraisRetour: fraisRetour,
+          wilayaSource: doc.expediteur.wilaya,
+          wilayaDestination: doc.destinataire.wilaya
+        }
+      });
+      
+      console.log(`✅ Transaction créée: Commerçant paie ${fraisRetour} DA de frais de retour`);
+    }
+    
+  } catch (error) {
+    console.error('❌ Erreur création transaction automatique:', error);
+  }
+});
+
 module.exports = mongoose.model('Colis', colisSchema);

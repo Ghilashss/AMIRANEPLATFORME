@@ -53,7 +53,8 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/colis', require('./routes/colis'));
 app.use('/api/agences', require('./routes/agences'));
 app.use('/api/wilayas', require('./routes/wilayas'));
-app.use('/api/caisse', require('./routes/caisse'));
+app.use('/api/caisse', require('./routes/caisseNew')); // ✅ Nouveau système de caisse
+app.use('/api/caisse-legacy', require('./routes/caisse')); // Ancien système (legacy)
 app.use('/api/transactions', require('./routes/transactionRoutes'));
 app.use('/api/frais-livraison', require('./routes/fraisLivraison'));
 app.use('/api/livraisons', require('./routes/livraisons'));
@@ -69,8 +70,19 @@ app.get('/', (req, res) => {
       auth: '/api/auth',
       colis: '/api/colis',
       agences: '/api/agences',
-      wilayas: '/api/wilayas'
+      wilayas: '/api/wilayas',
+      caisse: '/api/caisse'
     }
+  });
+});
+
+// Health check endpoint pour Render.com
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    message: 'Backend en cours d\'exécution',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
