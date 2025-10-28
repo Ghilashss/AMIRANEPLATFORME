@@ -53,7 +53,6 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/colis', require('./routes/colis'));
 app.use('/api/agences', require('./routes/agences'));
 app.use('/api/wilayas', require('./routes/wilayas'));
-app.use('/api/caisse', require('./routes/caisseNew')); // ✅ Nouveau système de caisse
 app.use('/api/caisse-legacy', require('./routes/caisse')); // Ancien système (legacy)
 app.use('/api/transactions', require('./routes/transactionRoutes'));
 app.use('/api/frais-livraison', require('./routes/fraisLivraison'));
