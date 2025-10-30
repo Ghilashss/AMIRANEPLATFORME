@@ -111,7 +111,7 @@ exports.obtenirStatistiques = async (req, res) => {
       // COMMERÇANT
       // À RECEVOIR = Prix des colis livrés (non encore payés par agent)
       const colisLivres = await Colis.find({
-        commercant: userId,
+        'expediteur.id': userId,
         status: 'livre',
         paye: { $ne: true }
       });
@@ -120,7 +120,7 @@ exports.obtenirStatistiques = async (req, res) => {
       // À PAYER = Frais de livraison (colis livrés) + Frais de retour (colis retournés)
       // Frais de livraison des colis livrés
       const colisLivresFrais = await Colis.find({
-        commercant: userId,
+        'expediteur.id': userId,
         status: 'livre',
         fraisLivraisonPayes: { $ne: true }
       });
@@ -128,7 +128,7 @@ exports.obtenirStatistiques = async (req, res) => {
       
       // Frais de retour (200 DA par colis retourné)
       const colisRetournes = await Colis.find({
-        commercant: userId,
+        'expediteur.id': userId,
         status: 'retourne',
         fraisRetourPayes: { $ne: true }
       });
@@ -343,7 +343,7 @@ exports.marquerColisPaye = async (req, res) => {
     const { colisId, agentId } = req.body;
     
     const colis = await Colis.findById(colisId)
-      .populate('commercant')
+      .populate('expediteur.id')
       .populate('agence');
     
     if (!colis) {
@@ -353,7 +353,7 @@ exports.marquerColisPaye = async (req, res) => {
       });
     }
     
-    if (colis.statut !== 'livre') {
+    if (colis.status !== 'livre') {
       return res.status(400).json({ 
         success: false, 
         message: 'Seuls les colis livrés peuvent être payés' 
@@ -374,7 +374,7 @@ exports.marquerColisPaye = async (req, res) => {
     });
     
     const portefeuilleCommercant = await Portefeuille.findOne({
-      proprietaireId: colis.commercant._id,
+      proprietaireId: colis.expediteur.id._id,
       typeProprietaire: 'Commercant'
     });
     
