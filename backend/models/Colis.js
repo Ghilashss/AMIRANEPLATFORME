@@ -328,12 +328,12 @@ colisSchema.post('save', async function(doc) {
         // L'agent livre le colis et collecte l'argent du client, puis doit verser au commerçant
         await OperationFinanciere.create({
           typeOperation: 'paiement_livraison',
-          montant: doc.prix || 0,
+          montant: doc.montant || 0,
           compteDebit: agenceWallet._id,  // Agent paie
           compteCredit: commercantWallet._id,  // Commerçant reçoit
           referenceColis: doc._id,
           codeColis: doc.codeSuivi,
-          description: `Paiement prix colis ${doc.codeSuivi} - ${doc.prix} DA`,
+          description: `Paiement prix colis ${doc.codeSuivi} - ${doc.montant} DA`,
           statut: 'en_attente', // En attente que le commerçant verse à l'agent
           methodePaiement: 'automatique'
         });
