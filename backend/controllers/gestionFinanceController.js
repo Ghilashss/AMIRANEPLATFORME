@@ -129,7 +129,7 @@ exports.obtenirStatistiques = async (req, res) => {
       // Frais de retour (200 DA par colis retourné)
       const colisRetournes = await Colis.find({
         'expediteur.id': userId,
-        status: 'retourne',
+        status: { $in: ['retourne', 'en_retour'] },
         fraisRetourPayes: { $ne: true }
       });
       const fraisRetour = colisRetournes.reduce((sum, colis) => sum + (colis.fraisRetour || 200), 0);
@@ -148,7 +148,7 @@ exports.obtenirStatistiques = async (req, res) => {
       
       const colisAgenceRetournes = await Colis.find({
         agence: userId,
-        status: 'retourne',
+        status: { $in: ['retourne', 'en_retour'] },
         fraisRetourPayes: { $ne: true }
       });
       const fraisRetour = colisAgenceRetournes.reduce((sum, colis) => sum + (colis.fraisRetour || 200), 0);
