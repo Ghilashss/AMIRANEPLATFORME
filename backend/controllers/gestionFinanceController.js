@@ -109,35 +109,81 @@ exports.obtenirStatistiques = async (req, res) => {
     };
     
     if (userType === 'Commercant') {
-      // Pour commerçant : calculer à recevoir et frais à payer
+      // COMMERÇANT
+      // À RECEVOIR = Prix des colis livrés (non encore payés par agent)
       const colisLivres = await Colis.find({
         commercant: userId,
         statut: 'livre',
         paye: { $ne: true }
       });
-      
       stats.aRecevoir = colisLivres.reduce((sum, colis) => sum + (colis.prix || 0), 0);
       
+      // À PAYER = Frais de livraison (colis livrés) + Frais de retour (colis retournés)
+      // Frais de livraison des colis livrés
+      const colisLivresFrais = await Colis.find({
+        commercant: userId,
+        statut: 'livre',
+        fraisLivraisonPayes: { $ne: true }
+      });
+      const fraisLivraison = colisLivresFrais.reduce((sum, colis) => sum + (colis.fraisLivraison || 0), 0);
+      
+      // Frais de retour (200 DA par colis retourné)
       const colisRetournes = await Colis.find({
         commercant: userId,
         statut: 'retourne',
         fraisRetourPayes: { $ne: true }
       });
+      const fraisRetour = colisRetournes.reduce((sum, colis) => sum + 200, 0);
       
-      stats.aPayer = colisRetournes.reduce((sum, colis) => sum + (colis.fraisRetour || 0), 0);
+      stats.aPayer = fraisLivraison + fraisRetour;
       
     } else if (userType === 'Agence') {
-      // Pour agence : calculer frais à payer à l'admin
-      const colisAgence = await Colis.find({
+      // AGENT/AGENCE
+      // À RECEVOIR = Frais de livraison + Frais de retour que commerçants doivent payer
+      const colisAgenceLivres = await Colis.find({
         agence: userId,
-        statut: { $in: ['livre', 'retourne'] },
+        statut: 'livre',
+        fraisLivraisonPayes: { $ne: true }
+      });
+      const fraisLivraison = colisAgenceLivres.reduce((sum, colis) => sum + (colis.fraisLivraison || 0), 0);
+      
+      const colisAgenceRetournes = await Colis.find({
+        agence: userId,
+        statut: 'retourne',
+        fraisRetourPayes: { $ne: true }
+      });
+      const fraisRetour = colisAgenceRetournes.reduce((sum, colis) => sum + 200, 0);
+      
+      stats.aRecevoir = fraisLivraison + fraisRetour;
+      
+      // À PAYER = Frais de livraison à payer à l'admin + Prix des colis à payer aux commerçants
+      const colisAPayer = await Colis.find({
+        agence: userId,
+        statut: 'livre',
         fraisAgencePayes: { $ne: true }
       });
+      const fraisAdmin = colisAPayer.reduce((sum, colis) => sum + (colis.fraisLivraison || 0), 0);
       
-      stats.aPayer = colisAgence.reduce((sum, colis) => sum + (colis.fraisLivraison || 0), 0);
+      const colisPrixAPayer = await Colis.find({
+        agence: userId,
+        statut: 'livre',
+        paye: { $ne: true }
+      });
+      const prixColis = colisPrixAPayer.reduce((sum, colis) => sum + (colis.prix || 0), 0);
+      
+      stats.aPayer = fraisAdmin + prixColis;
+      
+    } else if (userType === 'User' || userType === 'Admin') {
+      // ADMIN
+      // À RECEVOIR = Frais de livraison de tous les agents
+      const tousColisLivres = await Colis.find({
+        statut: 'livre',
+        fraisAgencePayes: { $ne: true }
+      });
+      stats.aRecevoir = tousColisLivres.reduce((sum, colis) => sum + (colis.fraisLivraison || 0), 0);
     }
     
-    // Calculer total reçu et payé
+    // Calculer total reçu et payé depuis les transactions validées
     const operations = await OperationFinanciere.find({
       $or: [
         { compteDebit: portefeuille._id },

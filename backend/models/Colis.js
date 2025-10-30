@@ -104,6 +104,11 @@ const colisSchema = new mongoose.Schema({
     required: true,
     default: 0
   },
+  fraisRetour: {
+    type: Number,
+    default: 200,
+    description: 'Frais de retour fixés à 200 DA'
+  },
   totalAPayer: {
     type: Number,
     required: true
@@ -182,6 +187,41 @@ const colisSchema = new mongoose.Schema({
     type: String,
     enum: ['en_attente', 'paye', 'rembourse'],
     default: 'en_attente'
+  },
+  
+  // Suivi des paiements financiers
+  paye: {
+    type: Boolean,
+    default: false,
+    description: 'Le prix du colis a été payé au commerçant par l\'agent'
+  },
+  datePaiement: {
+    type: Date,
+    description: 'Date du paiement du prix au commerçant'
+  },
+  fraisLivraisonPayes: {
+    type: Boolean,
+    default: false,
+    description: 'Les frais de livraison ont été payés par le commerçant à l\'agent'
+  },
+  datePaiementFraisLivraison: {
+    type: Date
+  },
+  fraisRetourPayes: {
+    type: Boolean,
+    default: false,
+    description: 'Les frais de retour (200 DA) ont été payés par le commerçant à l\'agent'
+  },
+  datePaiementFraisRetour: {
+    type: Date
+  },
+  fraisAgencePayes: {
+    type: Boolean,
+    default: false,
+    description: 'Les frais de livraison ont été payés par l\'agent à l\'admin'
+  },
+  datePaiementFraisAgence: {
+    type: Date
   },
   
   // Options
