@@ -222,5 +222,138 @@ colisSchema.pre('save', function(next) {
   next();
 });
 
+// ===================================================
+// HOOK POST-SAVE: CRÉER TRANSACTIONS AUTOMATIQUES
+// ===================================================
+// Quand le statut change, créer les transactions financières
+colisSchema.post('save', async function(doc) {
+  try {
+    // Importer les modèles (à l'intérieur pour éviter les dépendances circulaires)
+    const Portefeuille = require('./Portefeuille');
+    const OperationFinanciere = require('./OperationFinanciere');
+    
+    // Si le statut est "livré" et pas encore payé
+    if (doc.statut === 'livre' && !doc.paye) {
+      console.log(`💰 Colis ${doc.codeSuivi} livré - Création transactions automatiques`);
+      
+      // Obtenir les portefeuilles
+      const portefeuilleAgence = await Portefeuille.findOne({
+        proprietaireId: doc.agence,
+        typeProprietaire: 'Agence'
+      });
+      
+      const portefeuilleCommercant = await Portefeuille.findOne({
+        proprietaireId: doc.commercant,
+        typeProprietaire: 'Commercant'
+      });
+      
+      // Créer les portefeuilles s'ils n'existent pas
+      if (!portefeuilleAgence) {
+        const Agence = require('./Agence');
+        const agence = await Agence.findById(doc.agence);
+        if (agence) {
+          await Portefeuille.create({
+            proprietaireId: doc.agence,
+            typeProprietaire: 'Agence',
+            nomProprietaire: agence.nom
+          });
+        }
+      }
+      
+      if (!portefeuilleCommercant) {
+        const Commercant = require('./Commercant');
+        const commercant = await Commercant.findById(doc.commercant);
+        if (commercant) {
+          await Portefeuille.create({
+            proprietaireId: doc.commercant,
+            typeProprietaire: 'Commercant',
+            nomProprietaire: commercant.nom
+          });
+        }
+      }
+      
+      // Recharger les portefeuilles
+      const agenceWallet = await Portefeuille.findOne({
+        proprietaireId: doc.agence,
+        typeProprietaire: 'Agence'
+      });
+      
+      const commercantWallet = await Portefeuille.findOne({
+        proprietaireId: doc.commercant,
+        typeProprietaire: 'Commercant'
+      });
+      
+      if (agenceWallet && commercantWallet) {
+        // TRANSACTION 1: Commerçant doit payer le PRIX du colis à l'Agent
+        // L'agent livre le colis et collecte l'argent du client, puis doit verser au commerçant
+        await OperationFinanciere.create({
+          typeOperation: 'paiement_livraison',
+          montant: doc.prix || 0,
+          compteDebit: agenceWallet._id,  // Agent paie
+          compteCredit: commercantWallet._id,  // Commerçant reçoit
+          referenceColis: doc._id,
+          codeColis: doc.codeSuivi,
+          description: `Paiement prix colis ${doc.codeSuivi} - ${doc.prix} DA`,
+          statut: 'en_attente', // En attente que le commerçant verse à l'agent
+          methodePaiement: 'automatique'
+        });
+        
+        // TRANSACTION 2: Commerçant paie les FRAIS DE LIVRAISON à l'Agent
+        if (doc.fraisLivraison > 0) {
+          await OperationFinanciere.create({
+            typeOperation: 'frais_livraison',
+            montant: doc.fraisLivraison,
+            compteDebit: commercantWallet._id,  // Commerçant paie
+            compteCredit: agenceWallet._id,  // Agent reçoit
+            referenceColis: doc._id,
+            codeColis: doc.codeSuivi,
+            description: `Frais livraison colis ${doc.codeSuivi} - ${doc.fraisLivraison} DA`,
+            statut: 'en_attente',
+            methodePaiement: 'automatique'
+          });
+        }
+        
+        console.log(`✅ Transactions créées pour colis ${doc.codeSuivi}`);
+      }
+    }
+    
+    // Si le statut est "retourné" et frais de retour pas encore payés
+    if (doc.statut === 'retourne' && !doc.fraisRetourPayes) {
+      console.log(`📦 Colis ${doc.codeSuivi} retourné - Création transaction frais retour`);
+      
+      const portefeuilleCommercant = await Portefeuille.findOne({
+        proprietaireId: doc.commercant,
+        typeProprietaire: 'Commercant'
+      });
+      
+      const portefeuilleAgence = await Portefeuille.findOne({
+        proprietaireId: doc.agence,
+        typeProprietaire: 'Agence'
+      });
+      
+      if (portefeuilleCommercant && portefeuilleAgence && doc.fraisRetour > 0) {
+        // Créer la transaction: Commerçant paie les frais de retour à l'agence
+        await OperationFinanciere.create({
+          typeOperation: 'frais_retour',
+          montant: doc.fraisRetour,
+          compteDebit: portefeuilleCommercant._id,
+          compteCredit: portefeuilleAgence._id,
+          referenceColis: doc._id,
+          codeColis: doc.codeSuivi,
+          description: `Frais retour colis ${doc.codeSuivi}`,
+          statut: 'en_attente',
+          methodePaiement: 'automatique'
+        });
+        
+        console.log(`✅ Transaction frais retour créée pour ${doc.codeSuivi}`);
+      }
+    }
+    
+  } catch (error) {
+    console.error('❌ Erreur création transaction automatique:', error);
+    // Ne pas bloquer la sauvegarde du colis si la transaction échoue
+  }
+});
+
 module.exports = mongoose.model('Colis', colisSchema);
 
