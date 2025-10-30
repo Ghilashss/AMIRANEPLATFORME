@@ -56,7 +56,7 @@ const colisSchema = new mongoose.Schema({
     },
     adresse: {
       type: String,
-      required: [true, 'L\'adresse de livraison est requise']
+      required: false  // Optionnel car peut être vide pour type "bureau"
     },
     wilaya: {
       type: String,
@@ -68,7 +68,7 @@ const colisSchema = new mongoose.Schema({
   // Informations colis
   typeLivraison: {
     type: String,
-    enum: ['domicile', 'stopdesk'],
+    enum: ['domicile', 'stopdesk', 'bureau'],
     default: 'domicile'
   },
   typeArticle: {
