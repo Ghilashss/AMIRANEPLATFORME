@@ -2,7 +2,6 @@ const Portefeuille = require('../models/Portefeuille');
 const OperationFinanciere = require('../models/OperationFinanciere');
 const User = require('../models/User');
 const Agence = require('../models/Agence');
-const Commercant = require('../models/Commercant');
 const Colis = require('../models/Colis');
 
 // ===================================================
@@ -40,7 +39,7 @@ exports.obtenirPortefeuille = async (req, res) => {
         const agence = await Agence.findById(userId);
         nomProprietaire = agence ? agence.nom : 'Agence';
       } else if (userType === 'Commercant') {
-        const commercant = await Commercant.findById(userId);
+        const commercant = await User.findById(userId);
         nomProprietaire = commercant ? commercant.nom : 'Commerçant';
       }
       
