@@ -556,8 +556,9 @@ const FinanceUtilisateur = {
         return;
       }
       
-      // Récupérer les colis du commerçant pour trouver l'agence
-      const colisResponse = await fetch(`${GestionFinanceAPI.baseURL}/colis/commercant/${commercantId}`, {
+      // Récupérer les colis du commerçant
+      // L'endpoint /colis filtre automatiquement pour les commerçants
+      const colisResponse = await fetch(`${GestionFinanceAPI.baseURL}/colis`, {
         headers: {
           'Authorization': `Bearer ${GestionFinanceAPI.getToken()}`
         }
@@ -569,7 +570,7 @@ const FinanceUtilisateur = {
       }
       
       const colisData = await colisResponse.json();
-      const colis = colisData.colis || colisData.data || colisData;
+      const colis = colisData.data || colisData.colis || colisData;
       
       // Trouver un colis avec une agence assignée
       const colisAvecAgence = colis.find(c => c.agence && c.agence._id);
