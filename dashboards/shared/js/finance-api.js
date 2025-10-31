@@ -547,8 +547,8 @@ const FinanceUtilisateur = {
     }
     
     try {
-      // Récupérer les infos utilisateur
-      const user = this.getUserInfo();
+      // Récupérer les infos utilisateur via GestionFinanceAPI
+      const user = GestionFinanceAPI.getUserInfo();
       const commercantId = user?._id;
       
       if (!commercantId) {
@@ -557,9 +557,9 @@ const FinanceUtilisateur = {
       }
       
       // Récupérer les colis du commerçant pour trouver l'agence
-      const colisResponse = await fetch(`${this.baseURL}/colis/commercant/${commercantId}`, {
+      const colisResponse = await fetch(`${GestionFinanceAPI.baseURL}/colis/commercant/${commercantId}`, {
         headers: {
-          'Authorization': `Bearer ${this.getToken()}`
+          'Authorization': `Bearer ${GestionFinanceAPI.getToken()}`
         }
       });
       
@@ -584,7 +584,7 @@ const FinanceUtilisateur = {
         : colisAvecAgence.agence;
       
       // Effectuer le virement
-      const response = await this.request('/finance/virement-commercant-agent', {
+      const response = await GestionFinanceAPI.request('/finance/virement-commercant-agent', {
         method: 'POST',
         body: JSON.stringify({
           commercantId,
