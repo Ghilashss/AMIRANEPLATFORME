@@ -643,6 +643,153 @@ const FinanceUtilisateur = {
     alert('📋 Fonctionnalité de collecte en cours de développement');
   },
   
+  // ============================================
+  // VIREMENTS EN ATTENTE (AGENT)
+  // ============================================
+  
+  async chargerVirementsEnAttente() {
+    const user = GestionFinanceAPI.getUserInfo();
+    const agenceId = user?.agenceId || user?._id;
+    
+    if (!agenceId) {
+      console.error('❌ Agence ID manquant');
+      return;
+    }
+    
+    try {
+      const response = await GestionFinanceAPI.request('/finance/virements-en-attente', {
+        method: 'POST',
+        body: JSON.stringify({ agenceId })
+      });
+      
+      if (response.success) {
+        this.afficherVirementsEnAttente(response.virements || []);
+      }
+    } catch (error) {
+      console.error('❌ Erreur chargement virements:', error);
+    }
+  },
+  
+  afficherVirementsEnAttente(virements) {
+    const container = document.getElementById('virementsEnAttenteContainer');
+    if (!container) return;
+    
+    if (virements.length === 0) {
+      container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;">Aucun virement en attente</p>';
+      return;
+    }
+    
+    container.innerHTML = `
+      <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
+        <strong>⏳ ${virements.length} demande(s) de virement en attente</strong>
+      </div>
+      <div style="display: grid; gap: 15px;">
+        ${virements.map(v => `
+          <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; background: white;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+              <div>
+                <div style="font-weight: 600; font-size: 16px; color: #1e293b;">
+                  ${v.commercant?.nom || 'Commerçant'}
+                </div>
+                <div style="font-size: 13px; color: #64748b; margin-top: 4px;">
+                  ${v.commercant?.telephone || ''}
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 20px; font-weight: 700; color: #0ea5e9;">
+                  ${GestionFinanceAPI.formatMontant(v.montant)}
+                </div>
+                <div style="font-size: 12px; color: #64748b;">
+                  ${new Date(v.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                </div>
+              </div>
+            </div>
+            <div style="font-size: 13px; color: #64748b; margin-bottom: 15px;">
+              ${v.description}
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button 
+                onclick="GestionFinanceAPI.validerVirement('${v.id}')" 
+                style="flex: 1; background: #10b981; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s;"
+                onmouseover="this.style.background='#059669'" 
+                onmouseout="this.style.background='#10b981'">
+                ✓ Valider
+              </button>
+              <button 
+                onclick="GestionFinanceAPI.refuserVirement('${v.id}')" 
+                style="flex: 1; background: #ef4444; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s;"
+                onmouseover="this.style.background='#dc2626'" 
+                onmouseout="this.style.background='#ef4444'">
+                ✗ Refuser
+              </button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  },
+  
+  async validerVirement(transactionId) {
+    if (!confirm('✅ Confirmer la validation de ce virement ?')) {
+      return;
+    }
+    
+    try {
+      const response = await GestionFinanceAPI.request('/finance/valider-virement-commercant', {
+        method: 'POST',
+        body: JSON.stringify({ transactionId })
+      });
+      
+      if (response.success) {
+        const msg = response.colisPayes 
+          ? `✅ Virement validé avec succès!\n${response.colisPayes} colis marqué(s) comme payés.`
+          : '✅ Virement validé avec succès!';
+        alert(msg);
+        
+        // Recharger les données
+        this.chargerVirementsEnAttente();
+        if (window.financeUtilisateur) {
+          window.financeUtilisateur.chargerDonnees();
+        }
+      } else {
+        alert('❌ ' + (response.message || 'Erreur lors de la validation'));
+      }
+    } catch (error) {
+      console.error('❌ Erreur validation:', error);
+      alert('❌ Erreur: ' + error.message);
+    }
+  },
+  
+  async refuserVirement(transactionId) {
+    const raison = prompt('❌ Raison du refus (optionnel):');
+    if (raison === null) return; // Annulation
+    
+    try {
+      const response = await GestionFinanceAPI.request('/finance/refuser-virement-commercant', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          transactionId,
+          raison: raison || 'Refusé par l\'agent'
+        })
+      });
+      
+      if (response.success) {
+        alert('✅ Virement refusé');
+        
+        // Recharger les données
+        this.chargerVirementsEnAttente();
+        if (window.financeUtilisateur) {
+          window.financeUtilisateur.chargerDonnees();
+        }
+      } else {
+        alert('❌ ' + (response.message || 'Erreur lors du refus'));
+      }
+    } catch (error) {
+      console.error('❌ Erreur refus:', error);
+      alert('❌ Erreur: ' + error.message);
+    }
+  },
+  
   afficherErreur(message) {
     console.error('Erreur:', message);
   }

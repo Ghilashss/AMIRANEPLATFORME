@@ -5,7 +5,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <!-- html5-qrcode pour scan QR/barcode -->
       <!-- Configuration API (OBLIGATOIRE EN PREMIER) -->
-    <script src="/dashboards/config.js"></script>
+    <script src="/config.js"></script>
+    
+    <!-- Service d'authentification (OBLIGATOIRE EN SECOND) -->
+    <script src="/auth-service.js"></script>
 
     <script src="https://unpkg.com/html5-qrcode@2.3.10/html5-qrcode.min.js"></script>
   <!-- QRCode.js pour génération de QR code -->
@@ -32,6 +35,8 @@
   <link rel="stylesheet" href="./css/retours.css" />
   <link rel="stylesheet" href="./css/livraisons.css" />
   <link rel="stylesheet" href="./css/reclamation.css" />
+  <!-- Gestion Finance - Nouveau système -->
+  <link rel="stylesheet" href="../shared/css/gestion-finance.css" />
   <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
   <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 
@@ -1191,22 +1196,25 @@
             <span class="icon"><img src="./logo.png" alt="Logo" class="logo-img"/></span>
           </a>
         </li>
+        <!-- Sections terminées -->
         <li class="hovered"><a href="#" data-page="dashboard"><span class="icon"><ion-icon name="home-outline"></ion-icon></span><span class="title">Dashboard</span></a></li>
         <li><a href="#" data-page="colis"><span class="icon"><ion-icon name="cube-outline"></ion-icon></span><span class="title">Colis</span></a></li>
-        <li><a href="#" data-page="expediteur"><span class="icon"><ion-icon name="person-add-outline"></ion-icon></span><span class="title">Expéditeur</span></a></li>
-        <li><a href="#" data-page="libre"><span class="icon"><ion-icon name="walk-outline"></ion-icon></span><span class="title">Libre</span></a></li>
         <li><a href="#" data-page="reception"><span class="icon"><ion-icon name="download-outline"></ion-icon></span><span class="title">Réception</span></a></li>
-        <li><a href="#" data-page="transfert"><span class="icon"><ion-icon name="swap-horizontal-outline"></ion-icon></span><span class="title">Transfert</span></a></li>
         <li><a href="#" data-page="retours"><span class="icon"><ion-icon name="return-down-back-outline"></ion-icon></span><span class="title">Retours</span></a></li>
         <li><a href="#" data-page="commercants"><span class="icon"><ion-icon name="storefront-outline"></ion-icon></span><span class="title">Commerçants</span></a></li>
-        <li><a href="#" data-page="contact"><span class="icon"><ion-icon name="call-outline"></ion-icon></span><span class="title">Contact pour livraison</span></a></li>
         <li><a href="#" data-page="livraison-clients"><span class="icon"><ion-icon name="bicycle-outline"></ion-icon></span><span class="title">Livraison aux clients</span></a></li>
-        <li><a href="#" data-page="affectation"><span class="icon"><ion-icon name="person-add-outline"></ion-icon></span><span class="title">Affectation</span></a></li>
-        <li><a href="#" data-page="rendre-colis"><span class="icon"><ion-icon name="return-up-back-outline"></ion-icon></span><span class="title">Rendre un colis (livreur)</span></a></li>
-        <li><a href="#" data-page="caisse-agent"><span class="icon"><ion-icon name="wallet-outline"></ion-icon></span><span class="title">Ma Caisse</span></a></li>
-        <li><a href="#" data-page="paiement-commercant"><span class="icon"><ion-icon name="card-outline"></ion-icon></span><span class="title">Paiement commerçant</span></a></li>
-        <li><a href="#" data-page="reclamation"><span class="icon"><ion-icon name="alert-circle-outline"></ion-icon></span><span class="title">Réclamation</span></a></li>
-        <li><a href="#" data-page="disponibilite"><span class="icon"><ion-icon name="checkmark-done-outline"></ion-icon></span><span class="title">Disponibilité</span></a></li>
+        <li><a href="#" data-page="finance-agent"><span class="icon"><ion-icon name="wallet-outline"></ion-icon></span><span class="title">Ma Trésorerie</span></a></li>
+        
+        <!-- Sections à venir (désactivées) -->
+        <li style="opacity: 0.6;"><a href="#" onclick="return false;" style="cursor: not-allowed;"><span class="icon"><ion-icon name="person-add-outline"></ion-icon></span><span class="title">Expéditeur <span style="font-size: 10px; background: #ffa500; color: white; padding: 2px 6px; border-radius: 10px; margin-left: 5px;">Bientôt</span></span></a></li>
+        <li style="opacity: 0.6;"><a href="#" onclick="return false;" style="cursor: not-allowed;"><span class="icon"><ion-icon name="walk-outline"></ion-icon></span><span class="title">Libre <span style="font-size: 10px; background: #ffa500; color: white; padding: 2px 6px; border-radius: 10px; margin-left: 5px;">Bientôt</span></span></a></li>
+        <li style="opacity: 0.6;"><a href="#" onclick="return false;" style="cursor: not-allowed;"><span class="icon"><ion-icon name="swap-horizontal-outline"></ion-icon></span><span class="title">Transfert <span style="font-size: 10px; background: #ffa500; color: white; padding: 2px 6px; border-radius: 10px; margin-left: 5px;">Bientôt</span></span></a></li>
+        <li style="opacity: 0.6;"><a href="#" onclick="return false;" style="cursor: not-allowed;"><span class="icon"><ion-icon name="call-outline"></ion-icon></span><span class="title">Contact pour livraison <span style="font-size: 10px; background: #ffa500; color: white; padding: 2px 6px; border-radius: 10px; margin-left: 5px;">Bientôt</span></span></a></li>
+        <li style="opacity: 0.6;"><a href="#" onclick="return false;" style="cursor: not-allowed;"><span class="icon"><ion-icon name="person-add-outline"></ion-icon></span><span class="title">Affectation <span style="font-size: 10px; background: #ffa500; color: white; padding: 2px 6px; border-radius: 10px; margin-left: 5px;">Bientôt</span></span></a></li>
+        <li style="opacity: 0.6;"><a href="#" onclick="return false;" style="cursor: not-allowed;"><span class="icon"><ion-icon name="return-up-back-outline"></ion-icon></span><span class="title">Rendre un colis (livreur) <span style="font-size: 10px; background: #ffa500; color: white; padding: 2px 6px; border-radius: 10px; margin-left: 5px;">Bientôt</span></span></a></li>
+        <li style="opacity: 0.6;"><a href="#" onclick="return false;" style="cursor: not-allowed;"><span class="icon"><ion-icon name="alert-circle-outline"></ion-icon></span><span class="title">Réclamation <span style="font-size: 10px; background: #ffa500; color: white; padding: 2px 6px; border-radius: 10px; margin-left: 5px;">Bientôt</span></span></a></li>
+        <li style="opacity: 0.6;"><a href="#" onclick="return false;" style="cursor: not-allowed;"><span class="icon"><ion-icon name="checkmark-done-outline"></ion-icon></span><span class="title">Disponibilité <span style="font-size: 10px; background: #ffa500; color: white; padding: 2px 6px; border-radius: 10px; margin-left: 5px;">Bientôt</span></span></a></li>
+        
         <li><a href="#" onclick="logoutAgent(event)"><span class="icon"><ion-icon name="log-out-outline"></ion-icon></span><span class="title">Déconnexion</span></a></li>
       </ul>
     </div>
@@ -2665,6 +2673,134 @@
           </div>
         </div>
       </section>
+
+      <!-- ==================== SECTION FINANCE AGENT ==================== -->
+      <section id="finance-agent" class="page">
+        <!-- Header GREEN -->
+        <div class="finance-header">
+          <div class="finance-header-content">
+            <div class="finance-header-title-group">
+              <div class="finance-title-icon-wrapper">
+                <ion-icon name="wallet"></ion-icon>
+              </div>
+              <div>
+                <h1>Ma Trésorerie</h1>
+                <p class="finance-header-subtitle">Gérez vos transactions et paiements</p>
+              </div>
+            </div>
+            <button id="btnActualiserFinance" class="btn-actualiser-finance">
+              <ion-icon name="refresh"></ion-icon>
+              <span>Actualiser</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Statistiques -->
+        <div class="finance-stats-grid">
+          <div class="finance-stat-card">
+            <div class="finance-stat-card-header">
+              <div class="finance-stat-icon bleu">
+                <ion-icon name="cash"></ion-icon>
+              </div>
+            </div>
+            <p class="finance-stat-label">Solde Actuel</p>
+            <h2 class="finance-stat-value">
+              <span id="finance-solde-actuel">0</span>
+              <span class="finance-stat-devise">DA</span>
+            </h2>
+            <span class="finance-stat-badge succes">Disponible</span>
+          </div>
+
+          <div class="finance-stat-card">
+            <div class="finance-stat-card-header">
+              <div class="finance-stat-icon rouge">
+                <ion-icon name="warning"></ion-icon>
+              </div>
+            </div>
+            <p class="finance-stat-label">À Payer</p>
+            <h2 class="finance-stat-value">
+              <span id="finance-a-payer">0</span>
+              <span class="finance-stat-devise">DA</span>
+            </h2>
+            <span class="finance-stat-badge alerte">Frais livraison</span>
+          </div>
+
+          <div class="finance-stat-card">
+            <div class="finance-stat-card-header">
+              <div class="finance-stat-icon cyan">
+                <ion-icon name="checkmark-done"></ion-icon>
+              </div>
+            </div>
+            <p class="finance-stat-label">Total Payé</p>
+            <h2 class="finance-stat-value">
+              <span id="finance-total-recu">0</span>
+              <span class="finance-stat-devise">DA</span>
+            </h2>
+            <span class="finance-stat-badge succes">Historique</span>
+          </div>
+
+          <div class="finance-stat-card">
+            <div class="finance-stat-card-header">
+              <div class="finance-stat-icon vert">
+                <ion-icon name="trending-up"></ion-icon>
+              </div>
+            </div>
+            <p class="finance-stat-label">À Recevoir</p>
+            <h2 class="finance-stat-value">
+              <span id="finance-a-recevoir">0</span>
+              <span class="finance-stat-devise">DA</span>
+            </h2>
+            <span class="finance-stat-badge attente">Commerçants</span>
+          </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="finance-actions">
+          <button id="btnVirementVersAdmin" class="btn-finance-action payer">
+            <ion-icon name="send"></ion-icon>
+            <span>Verser à l'Admin</span>
+          </button>
+          <button id="btnCollecterCommercant" class="btn-finance-action recevoir">
+            <ion-icon name="download"></ion-icon>
+            <span>Collecter Commerçant</span>
+          </button>
+        </div>
+
+        <!-- SECTION VIREMENTS EN ATTENTE -->
+        <div style="margin: 20px 0;">
+          <div id="virementsEnAttenteContainer"></div>
+        </div>
+
+        <!-- Tableau des opérations -->
+        <div class="finance-table-container">
+          <div class="finance-table-header">
+            <h3 class="finance-table-title">
+              <ion-icon name="time"></ion-icon>
+              Historique des Opérations
+            </h3>
+          </div>
+          <table class="finance-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Montant</th>
+                <th>Méthode</th>
+                <th>Statut</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody id="finance-operations-body">
+              <tr>
+                <td colspan="6" class="finance-empty-state">
+                  <ion-icon name="receipt-outline"></ion-icon>
+                  <p>Chargement des transactions...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   </div>
   <!-- Scripts JavaScript avec chemins absolus -->
@@ -2672,6 +2808,9 @@
   <script src="https://unpkg.com/html5-qrcode@2.3.10/html5-qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  
+  <!-- Finance API - Nouveau système de gestion financière -->
+  <script src="../shared/js/finance-api.js"></script>
   
   <!-- Script du ticket -->
   <script src="/dashboards/ticket.js"></script>
@@ -2718,20 +2857,28 @@
   </script>
   
   <!-- Fonction de déconnexion AGENT -->
-  <script type="module">
-    import AuthService from '../auth-service.js';
-    
+  <script>
+    // ✅ AuthService est disponible globalement via window.AuthService
     window.logoutAgent = function(event) {
-      event.preventDefault();
+      if (event) event.preventDefault();
       
-      if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
-        console.log('🚪 Déconnexion de l\'agent...');
+      console.log('🚪 Déconnexion de l\'agent...');
+      
+      try {
+        // Supprimer toutes les clés d'authentification
+        sessionStorage.clear();
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('agent_token');
+        localStorage.removeItem('agent_user');
         
-        // ✅ Utiliser AuthService pour déconnexion propre
-        AuthService.logout();
+        console.log('✅ Session nettoyée');
         
-        // Redirection vers la page de connexion
-        window.location.href = '../../login.html';
+        // Redirection immédiate vers la page de connexion AGENT
+        window.location.href = '../../login.html?role=agent';
+      } catch (error) {
+        console.error('❌ Erreur de déconnexion:', error);
+        window.location.href = '../../login.html?role=agent';
       }
     };
   </script>
@@ -2740,17 +2887,17 @@
   <script src="../shared/js/caisse-api.js"></script>
   
   <script type="module">
-    import AuthService from '../auth-service.js';
+    // ✅ AuthService est chargé globalement via window.AuthService
     import { CONFIG } from './config.js';
     import { Utils } from './utils.js';
     import { DataStore } from './data-store.js';
-    // import { NavigationManager } from './nav-manager.js'; // ⚠️ Désactivé - conflit avec PageManager
+    import { NavigationManager } from './nav-manager.js'; // ✅ ACTIVÉ pour navigation
     import { PageManager } from './page-manager.js';
     import { ModalManager } from './modal-manager.js';
     // import { ScannerManager } from './scanner-manager.js'; // ⚠️ Désactivé - Remplacé par colis-scanner-manager.js
 
-    // 🔐 Rendre AuthService disponible globalement
-    window.AuthService = AuthService;
+    // 🔐 Rendre AuthService disponible globalement (déjà disponible via script global)
+    // window.AuthService est déjà défini dans auth-service.js
 
     // Initialisation globale
     window.addEventListener('DOMContentLoaded', async () => {
@@ -2758,7 +2905,7 @@
       
       // 🔐 VÉRIFICATION DE L'AUTHENTIFICATION
       console.log('🔐 Vérification de l\'authentification...');
-      const user = await AuthService.checkAuth();
+      const user = await window.AuthService.checkAuth();
       
       if (!user) {
         console.error('❌ Non authentifié - Redirection vers login');
@@ -2777,30 +2924,39 @@
         
         // ✅ Utiliser les données de l'utilisateur récupérées depuis l'API
         if (user && user.nom) {
+          console.log('📝 Affichage du nom:', user.nom);
           agenceNomEl.textContent = user.nom;
           
           // Vérifier si l'agence est disponible
           if (user.agence) {
             try {
               let agenceData = null;
+              let wilayaText = null;
               
               // ✅ Vérifier si user.agence est déjà un objet (populate) ou juste un ID
               if (typeof user.agence === 'object' && user.agence.nom) {
                 // L'agence est déjà populée par /auth/me
                 console.log('✅ Agence déjà populée:', user.agence);
                 agenceData = { success: true, data: user.agence };
+                wilayaText = user.agence.wilayaText || user.agence.wilaya || user.wilaya;
               } else {
                 // L'agence est un ID, on doit la récupérer
                 console.log('🔍 Récupération de l\'agence:', user.agence);
-                agenceData = await AuthService.fetchWithAuth(`http://localhost:1000/api/agences/${user.agence}`);
+                agenceData = await window.AuthService.fetchWithAuth(`${window.API_CONFIG.API_URL}/agences/${user.agence}`);
+                wilayaText = agenceData?.data?.wilayaText || agenceData?.data?.wilaya || user.wilaya;
               }
               
-              if (agenceData && agenceData.success && agenceData.data) {
-                const wilayaText = agenceData.data.wilayaText || agenceData.data.wilaya || 'N/A';
+              // ✅ Fallback sur user.wilaya si disponible
+              if (!wilayaText && user.wilaya) {
+                wilayaText = user.wilaya;
+                console.log('📍 Wilaya depuis user.wilaya:', wilayaText);
+              }
+              
+              if (wilayaText) {
                 console.log('📍 Wilaya affichée:', wilayaText);
                 agenceWilayaEl.innerHTML = `<ion-icon name="location-outline" style="vertical-align: middle; margin-right: 4px;"></ion-icon> ${wilayaText}`;
               } else {
-                console.warn('⚠️ Données agence invalides:', agenceData);
+                console.warn('⚠️ Données agence/wilaya invalides');
                 agenceWilayaEl.innerHTML = '<ion-icon name="location-outline" style="vertical-align: middle; margin-right: 4px;"></ion-icon> Wilaya non disponible';
               }
             } catch (err) {
@@ -2839,9 +2995,20 @@
         
         // Initialiser les gestionnaires
         console.log('Initialisation des gestionnaires...');
-        // ⚠️ NavigationManager désactivé car conflit avec PageManager
-        // const navManager = new NavigationManager();
-        // navManager.init();
+        // ✅ NavigationManager ACTIVÉ pour permettre la navigation
+        const navManager = new NavigationManager();
+        navManager.init();
+        
+        // 💰 Initialisation du module Finance lorsque la page change
+        document.addEventListener('pageChanged', (e) => {
+          const pageId = e.detail.pageId;
+          if (pageId === 'finance-agent' && typeof FinanceUtilisateur !== 'undefined') {
+            console.log('💰 Initialisation du module Finance Agent...');
+            FinanceUtilisateur.init().catch(err => {
+              console.error('❌ Erreur initialisation Finance Agent:', err);
+            });
+          }
+        });
         
         // ✅ S'assurer que le DOM est prêt avant d'initialiser PageManager
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -2928,7 +3095,7 @@
       <!-- En-tête avec logo et infos à droite -->
       <div class="ticket-header">
         <div class="header-left">
-          <img src="../../logo.png" alt="Logo" class="header-logo"/>
+          <img src="../../logoBORDEREU.png" alt="Logo" class="header-logo"/>
         </div>
         <div class="header-right">
           <div class="wilaya-info" style="border: 1px solid #000; padding: 0.1cm;">
@@ -3060,3 +3227,4 @@
   </script>
 </body>
 </html>
+
