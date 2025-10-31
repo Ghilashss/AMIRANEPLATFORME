@@ -574,23 +574,52 @@ exports.virementCommercantVersAgent = async (req, res) => {
     await portefeuilleCommercant.mettreAJourSolde();
     await portefeuilleAgence.mettreAJourSolde();
     
-    // Si des colis sont associés, les marquer comme payés
-    if (colisIds && colisIds.length > 0) {
+    // IMPORTANT: Marquer automatiquement les colis retournés comme payés
+    // Récupérer les colis en retour non payés du commerçant
+    const colisRetourNonPayes = await Colis.find({
+      'expediteur.id': commercantId,
+      status: { $in: ['retourne', 'en_retour'] },
+      fraisRetourPayes: { $ne: true }
+    }).sort({ createdAt: 1 }); // Les plus anciens en premier
+    
+    let montantRestant = parseFloat(montant);
+    const colisAMarquer = [];
+    
+    // Marquer les colis jusqu'à épuiser le montant payé
+    for (const colis of colisRetourNonPayes) {
+      if (montantRestant <= 0) break;
+      
+      const fraisRetour = colis.fraisRetour || 200;
+      if (montantRestant >= fraisRetour) {
+        colisAMarquer.push(colis._id);
+        montantRestant -= fraisRetour;
+      }
+    }
+    
+    // Marquer les colis sélectionnés comme payés
+    if (colisAMarquer.length > 0) {
       await Colis.updateMany(
-        { _id: { $in: colisIds } },
-        { $set: { paye: true, datePaiement: new Date() } }
+        { _id: { $in: colisAMarquer } },
+        { 
+          $set: { 
+            fraisRetourPayes: true, 
+            datePaiementFraisRetour: new Date() 
+          } 
+        }
       );
     }
     
     res.json({
       success: true,
-      message: 'Virement effectué avec succès',
+      message: `Virement effectué avec succès. ${colisAMarquer.length} colis marqués comme payés.`,
       transaction: {
         id: transaction._id,
         montant: transaction.montant,
         description: transaction.description,
         date: transaction.dateOperation
-      }
+      },
+      colisPayes: colisAMarquer.length,
+      montantRestant: montantRestant
     });
     
   } catch (error) {
