@@ -30,6 +30,18 @@ router.post('/marquer-paye', gestionFinanceController.marquerColisPaye);
 // Virement du commerçant vers l'agent
 router.post('/virement-commercant-agent', gestionFinanceController.virementCommercantVersAgent);
 
+// Route: POST /api/finance/virements-en-attente
+// Obtenir les virements en attente pour l'agent
+router.post('/virements-en-attente', gestionFinanceController.obtenirVirementsEnAttente);
+
+// Route: POST /api/finance/valider-virement-commercant
+// Valider un virement du commerçant (Agent uniquement)
+router.post('/valider-virement-commercant', gestionFinanceController.validerVirementCommercant);
+
+// Route: POST /api/finance/refuser-virement-commercant
+// Refuser un virement du commerçant (Agent uniquement)
+router.post('/refuser-virement-commercant', gestionFinanceController.refuserVirementCommercant);
+
 // Route: POST /api/finance/virement-agent-admin
 // Virement de l'agent vers l'admin
 router.post('/virement-agent-admin', gestionFinanceController.virementAgentVersAdmin);

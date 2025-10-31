@@ -555,8 +555,7 @@ exports.virementCommercantVersAgent = async (req, res) => {
       await portefeuilleAgence.save();
     }
     
-    // Créer la transaction directement (sans vérification de solde)
-    // Car pour les frais, le commerçant peut avoir un solde négatif (crédit)
+    // Créer la transaction EN ATTENTE (nécessite validation de l'agent)
     const transaction = new OperationFinanciere({
       typeOperation: 'virement_manuel',
       montant: parseFloat(montant),
@@ -565,61 +564,21 @@ exports.virementCommercantVersAgent = async (req, res) => {
       description: description || `Paiement frais de livraison et retour - ${montant} DA`,
       methodePaiement: 'virement',
       effectuePar: req.user?._id,
-      statut: 'validee',
-      dateValidation: new Date()
+      statut: 'en_attente', // EN ATTENTE de validation par l'agent
+      notes: colisIds ? `Colis concernés: ${colisIds.join(', ')}` : undefined
     });
     await transaction.save();
     
-    // Mettre à jour les soldes manuellement
-    await portefeuilleCommercant.mettreAJourSolde();
-    await portefeuilleAgence.mettreAJourSolde();
-    
-    // IMPORTANT: Marquer automatiquement les colis retournés comme payés
-    // Récupérer les colis en retour non payés du commerçant
-    const colisRetourNonPayes = await Colis.find({
-      'expediteur.id': commercantId,
-      status: { $in: ['retourne', 'en_retour'] },
-      fraisRetourPayes: { $ne: true }
-    }).sort({ createdAt: 1 }); // Les plus anciens en premier
-    
-    let montantRestant = parseFloat(montant);
-    const colisAMarquer = [];
-    
-    // Marquer les colis jusqu'à épuiser le montant payé
-    for (const colis of colisRetourNonPayes) {
-      if (montantRestant <= 0) break;
-      
-      const fraisRetour = colis.fraisRetour || 200;
-      if (montantRestant >= fraisRetour) {
-        colisAMarquer.push(colis._id);
-        montantRestant -= fraisRetour;
-      }
-    }
-    
-    // Marquer les colis sélectionnés comme payés
-    if (colisAMarquer.length > 0) {
-      await Colis.updateMany(
-        { _id: { $in: colisAMarquer } },
-        { 
-          $set: { 
-            fraisRetourPayes: true, 
-            datePaiementFraisRetour: new Date() 
-          } 
-        }
-      );
-    }
-    
     res.json({
       success: true,
-      message: `Virement effectué avec succès. ${colisAMarquer.length} colis marqués comme payés.`,
+      message: 'Demande de virement envoyée. En attente de validation par l\'agent.',
       transaction: {
         id: transaction._id,
         montant: transaction.montant,
         description: transaction.description,
-        date: transaction.dateOperation
-      },
-      colisPayes: colisAMarquer.length,
-      montantRestant: montantRestant
+        date: transaction.dateOperation,
+        statut: transaction.statut
+      }
     });
     
   } catch (error) {
@@ -716,5 +675,220 @@ exports.virementAgentVersAdmin = async (req, res) => {
   }
 };
 
-module.exports = exports;
+// ===================================================
+// OBTENIR LES VIREMENTS EN ATTENTE (AGENT)
+// ===================================================
+exports.obtenirVirementsEnAttente = async (req, res) => {
+  try {
+    const { agenceId } = req.body;
+    
+    if (!agenceId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'ID agence manquant' 
+      });
+    }
+    
+    // Récupérer le portefeuille de l'agence
+    const portefeuilleAgence = await Portefeuille.findOne({
+      proprietaireId: agenceId,
+      typeProprietaire: 'Agence'
+    });
+    
+    if (!portefeuilleAgence) {
+      return res.json({
+        success: true,
+        virements: []
+      });
+    }
+    
+    // Récupérer les virements en attente vers cette agence
+    const virements = await OperationFinanciere.find({
+      compteCredit: portefeuilleAgence._id,
+      statut: 'en_attente',
+      typeOperation: 'virement_manuel'
+    })
+    .populate('compteDebit', 'nomProprietaire proprietaireId')
+    .sort({ dateOperation: -1 });
+    
+    // Enrichir avec les infos du commerçant
+    const virementsEnrichis = await Promise.all(
+      virements.map(async (virement) => {
+        const commercant = await User.findById(virement.compteDebit.proprietaireId);
+        return {
+          id: virement._id,
+          montant: virement.montant,
+          description: virement.description,
+          date: virement.dateOperation,
+          commercant: {
+            id: commercant?._id,
+            nom: commercant?.nom || virement.compteDebit.nomProprietaire,
+            telephone: commercant?.telephone
+          }
+        };
+      })
+    );
+    
+    res.json({
+      success: true,
+      virements: virementsEnrichis
+    });
+    
+  } catch (error) {
+    console.error('❌ Erreur obtenirVirementsEnAttente:', error);
+    res.status(400).json({ 
+      success: false, 
+      message: error.message || 'Erreur lors de la récupération'
+    });
+  }
+};
 
+// ===================================================
+// VALIDER UN VIREMENT COMMERCANT → AGENT
+// ===================================================
+exports.validerVirementCommercant = async (req, res) => {
+  try {
+    const { transactionId } = req.body;
+    
+    if (!transactionId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'ID de transaction manquant' 
+      });
+    }
+    
+    // Récupérer la transaction
+    const transaction = await OperationFinanciere.findById(transactionId)
+      .populate('compteDebit')
+      .populate('compteCredit');
+    
+    if (!transaction) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Transaction introuvable' 
+      });
+    }
+    
+    if (transaction.statut !== 'en_attente') {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Transaction déjà ${transaction.statut}` 
+      });
+    }
+    
+    // Valider la transaction (met à jour les soldes automatiquement)
+    await transaction.valider();
+    
+    // Extraire le commercantId depuis le compte débit
+    const commercantId = transaction.compteDebit.proprietaireId;
+    
+    // IMPORTANT: Marquer automatiquement les colis retournés comme payés
+    const colisRetourNonPayes = await Colis.find({
+      'expediteur.id': commercantId,
+      status: { $in: ['retourne', 'en_retour'] },
+      fraisRetourPayes: { $ne: true }
+    }).sort({ createdAt: 1 }); // Les plus anciens en premier
+    
+    let montantRestant = parseFloat(transaction.montant);
+    const colisAMarquer = [];
+    
+    // Marquer les colis jusqu'à épuiser le montant payé
+    for (const colis of colisRetourNonPayes) {
+      if (montantRestant <= 0) break;
+      
+      const fraisRetour = colis.fraisRetour || 200;
+      if (montantRestant >= fraisRetour) {
+        colisAMarquer.push(colis._id);
+        montantRestant -= fraisRetour;
+      }
+    }
+    
+    // Marquer les colis sélectionnés comme payés
+    if (colisAMarquer.length > 0) {
+      await Colis.updateMany(
+        { _id: { $in: colisAMarquer } },
+        { 
+          $set: { 
+            fraisRetourPayes: true, 
+            datePaiementFraisRetour: new Date() 
+          } 
+        }
+      );
+    }
+    
+    res.json({
+      success: true,
+      message: `Virement validé avec succès. ${colisAMarquer.length} colis marqués comme payés.`,
+      transaction: {
+        id: transaction._id,
+        montant: transaction.montant,
+        description: transaction.description,
+        date: transaction.dateOperation,
+        statut: transaction.statut
+      },
+      colisPayes: colisAMarquer.length,
+      montantRestant: montantRestant
+    });
+    
+  } catch (error) {
+    console.error('❌ Erreur validerVirementCommercant:', error);
+    res.status(400).json({ 
+      success: false, 
+      message: error.message || 'Erreur lors de la validation'
+    });
+  }
+};
+
+// ===================================================
+// REFUSER UN VIREMENT COMMERCANT → AGENT
+// ===================================================
+exports.refuserVirementCommercant = async (req, res) => {
+  try {
+    const { transactionId, raison } = req.body;
+    
+    if (!transactionId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'ID de transaction manquant' 
+      });
+    }
+    
+    // Récupérer la transaction
+    const transaction = await OperationFinanciere.findById(transactionId);
+    
+    if (!transaction) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Transaction introuvable' 
+      });
+    }
+    
+    if (transaction.statut !== 'en_attente') {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Transaction déjà ${transaction.statut}` 
+      });
+    }
+    
+    // Annuler la transaction
+    await transaction.annuler(raison || 'Refusé par l\'agent');
+    
+    res.json({
+      success: true,
+      message: 'Virement refusé',
+      transaction: {
+        id: transaction._id,
+        statut: transaction.statut
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Erreur refuserVirementCommercant:', error);
+    res.status(400).json({ 
+      success: false, 
+      message: error.message || 'Erreur lors du refus'
+    });
+  }
+};
+
+module.exports = exports;
