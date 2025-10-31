@@ -649,10 +649,30 @@ const FinanceUtilisateur = {
   
   async chargerVirementsEnAttente() {
     const user = GestionFinanceAPI.getUserInfo();
-    const agenceId = user?.agenceId || user?._id;
+    
+    // Pour un agent, l'agence peut être dans user.agence ou user.agenceId
+    let agenceId = null;
+    
+    if (user?.agence) {
+      // Si agence est un objet
+      agenceId = typeof user.agence === 'string' 
+        ? user.agence 
+        : (user.agence._id || user.agence.id);
+    } else if (user?.agenceId) {
+      agenceId = user.agenceId;
+    } else if (user?._id) {
+      // Si l'utilisateur est l'agence elle-même
+      agenceId = user._id;
+    }
+    
+    console.log('🔍 Chargement virements pour agence:', agenceId);
     
     if (!agenceId) {
-      console.error('❌ Agence ID manquant');
+      console.error('❌ Agence ID manquant', user);
+      const container = document.getElementById('virementsEnAttenteContainer');
+      if (container) {
+        container.innerHTML = '<p style="color: red; padding: 20px;">⚠️ Impossible de charger les virements (agence non trouvée)</p>';
+      }
       return;
     }
     
@@ -663,16 +683,28 @@ const FinanceUtilisateur = {
       });
       
       if (response.success) {
+        console.log('✅ Virements reçus:', response.virements?.length || 0);
         this.afficherVirementsEnAttente(response.virements || []);
+      } else {
+        console.error('❌ Erreur réponse:', response);
       }
     } catch (error) {
       console.error('❌ Erreur chargement virements:', error);
+      const container = document.getElementById('virementsEnAttenteContainer');
+      if (container) {
+        container.innerHTML = `<p style="color: red; padding: 20px;">❌ Erreur: ${error.message}</p>`;
+      }
     }
   },
   
   afficherVirementsEnAttente(virements) {
     const container = document.getElementById('virementsEnAttenteContainer');
-    if (!container) return;
+    if (!container) {
+      console.warn('⚠️ Container virementsEnAttenteContainer non trouvé');
+      return;
+    }
+    
+    console.log('📋 Affichage de', virements.length, 'virements');
     
     if (virements.length === 0) {
       container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;">Aucun virement en attente</p>';
