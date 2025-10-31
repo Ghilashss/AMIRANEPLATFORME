@@ -521,22 +521,38 @@ exports.virementCommercantVersAgent = async (req, res) => {
       });
     }
     
-    // Obtenir les portefeuilles
-    const portefeuilleCommercant = await Portefeuille.findOne({
+    // Obtenir ou créer le portefeuille du commerçant
+    let portefeuilleCommercant = await Portefeuille.findOne({
       proprietaireId: commercantId,
       typeProprietaire: 'Commercant'
     });
     
-    const portefeuilleAgence = await Portefeuille.findOne({
+    if (!portefeuilleCommercant) {
+      const commercant = await User.findById(commercantId);
+      portefeuilleCommercant = new Portefeuille({
+        proprietaireId: commercantId,
+        typeProprietaire: 'Commercant',
+        nomProprietaire: commercant ? commercant.nom : 'Commerçant',
+        solde: 0
+      });
+      await portefeuilleCommercant.save();
+    }
+    
+    // Obtenir ou créer le portefeuille de l'agence
+    let portefeuilleAgence = await Portefeuille.findOne({
       proprietaireId: agenceId,
       typeProprietaire: 'Agence'
     });
     
-    if (!portefeuilleCommercant || !portefeuilleAgence) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Portefeuille non trouvé' 
+    if (!portefeuilleAgence) {
+      const agence = await Agence.findById(agenceId);
+      portefeuilleAgence = new Portefeuille({
+        proprietaireId: agenceId,
+        typeProprietaire: 'Agence',
+        nomProprietaire: agence ? agence.nom : 'Agence',
+        solde: 0
       });
+      await portefeuilleAgence.save();
     }
     
     // Créer la transaction
@@ -593,11 +609,22 @@ exports.virementAgentVersAdmin = async (req, res) => {
       });
     }
     
-    // Obtenir les portefeuilles
-    const portefeuilleAgence = await Portefeuille.findOne({
+    // Obtenir ou créer le portefeuille de l'agence
+    let portefeuilleAgence = await Portefeuille.findOne({
       proprietaireId: agenceId,
       typeProprietaire: 'Agence'
     });
+    
+    if (!portefeuilleAgence) {
+      const agence = await Agence.findById(agenceId);
+      portefeuilleAgence = new Portefeuille({
+        proprietaireId: agenceId,
+        typeProprietaire: 'Agence',
+        nomProprietaire: agence ? agence.nom : 'Agence',
+        solde: 0
+      });
+      await portefeuilleAgence.save();
+    }
     
     // Trouver ou créer le portefeuille Admin
     let portefeuilleAdmin = await Portefeuille.findOne({
@@ -612,13 +639,6 @@ exports.virementAgentVersAdmin = async (req, res) => {
         nomProprietaire: 'Administrateur Général',
         solde: 0,
         devise: 'DA'
-      });
-    }
-    
-    if (!portefeuilleAgence) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Portefeuille agence non trouvé' 
       });
     }
     
