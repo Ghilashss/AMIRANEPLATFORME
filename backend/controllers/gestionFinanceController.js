@@ -555,17 +555,24 @@ exports.virementCommercantVersAgent = async (req, res) => {
       await portefeuilleAgence.save();
     }
     
-    // Créer la transaction
-    const transaction = await OperationFinanciere.creerTransaction({
+    // Créer la transaction directement (sans vérification de solde)
+    // Car pour les frais, le commerçant peut avoir un solde négatif (crédit)
+    const transaction = new OperationFinanciere({
       typeOperation: 'virement_manuel',
       montant: parseFloat(montant),
       compteDebit: portefeuilleCommercant._id,
       compteCredit: portefeuilleAgence._id,
-      description: description || `Virement commerçant vers agent - ${montant} DA`,
+      description: description || `Paiement frais de livraison et retour - ${montant} DA`,
       methodePaiement: 'virement',
       effectuePar: req.user?._id,
-      statut: 'validee'
+      statut: 'validee',
+      dateValidation: new Date()
     });
+    await transaction.save();
+    
+    // Mettre à jour les soldes manuellement
+    await portefeuilleCommercant.mettreAJourSolde();
+    await portefeuilleAgence.mettreAJourSolde();
     
     // Si des colis sont associés, les marquer comme payés
     if (colisIds && colisIds.length > 0) {
@@ -642,17 +649,23 @@ exports.virementAgentVersAdmin = async (req, res) => {
       });
     }
     
-    // Créer la transaction
-    const transaction = await OperationFinanciere.creerTransaction({
+    // Créer la transaction directement (sans vérification de solde)
+    const transaction = new OperationFinanciere({
       typeOperation: typeFrais === 'livraison' ? 'paiement_agence' : 'virement_manuel',
       montant: parseFloat(montant),
       compteDebit: portefeuilleAgence._id,
       compteCredit: portefeuilleAdmin._id,
-      description: description || `Virement agent vers admin - ${montant} DA`,
+      description: description || `Virement frais de livraison - ${montant} DA`,
       methodePaiement: 'virement',
       effectuePar: req.user?._id,
-      statut: 'validee'
+      statut: 'validee',
+      dateValidation: new Date()
     });
+    await transaction.save();
+    
+    // Mettre à jour les soldes
+    await portefeuilleAgence.mettreAJourSolde();
+    await portefeuilleAdmin.mettreAJourSolde();
     
     res.json({
       success: true,
