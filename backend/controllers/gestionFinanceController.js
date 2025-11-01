@@ -54,7 +54,19 @@ exports.obtenirPortefeuille = async (req, res) => {
     }
     
     // Mettre à jour le solde
+    console.log('📊 obtenirPortefeuille - Avant mise à jour:', {
+      userId,
+      userType,
+      portefeuilleId: portefeuille._id,
+      soldeAvant: portefeuille.solde
+    });
+    
     await portefeuille.mettreAJourSolde();
+    
+    console.log('✅ obtenirPortefeuille - Après mise à jour:', {
+      soldeApres: portefeuille.solde,
+      derniereMiseAJour: portefeuille.derniereMiseAJour
+    });
     
     res.json({
       success: true,
@@ -191,14 +203,25 @@ exports.obtenirStatistiques = async (req, res) => {
       statut: 'validee'
     });
     
+    console.log('📊 Calcul statistiques pour:', {
+      userId,
+      userType,
+      portefeuilleId: portefeuille._id,
+      nombreOperationsValidees: operations.length
+    });
+    
     operations.forEach(op => {
       if (op.compteCredit && op.compteCredit.toString() === portefeuille._id.toString()) {
         stats.totalRecu += op.montant;
+        console.log('  ➕ Crédit:', op.montant, 'DA');
       }
       if (op.compteDebit && op.compteDebit.toString() === portefeuille._id.toString()) {
         stats.totalPaye += op.montant;
+        console.log('  ➖ Débit:', op.montant, 'DA');
       }
     });
+    
+    console.log('✅ Stats finales:', stats);
     
     res.json({
       success: true,
@@ -777,7 +800,31 @@ exports.validerVirementCommercant = async (req, res) => {
     }
     
     // Valider la transaction (met à jour les soldes automatiquement)
+    console.log('🔄 Avant validation - Transaction:', {
+      id: transaction._id,
+      statut: transaction.statut,
+      montant: transaction.montant,
+      compteDebitId: transaction.compteDebit?._id,
+      compteCreditId: transaction.compteCredit?._id
+    });
+    
     await transaction.valider();
+    
+    console.log('✅ Après validation - Transaction:', {
+      id: transaction._id,
+      statut: transaction.statut,
+      dateValidation: transaction.dateValidation
+    });
+    
+    // Vérifier les soldes mis à jour
+    const Portefeuille = require('../models/Portefeuille');
+    const compteDebitApres = await Portefeuille.findById(transaction.compteDebit);
+    const compteCreditApres = await Portefeuille.findById(transaction.compteCredit);
+    
+    console.log('💰 Soldes après validation:', {
+      compteDebit: { id: compteDebitApres._id, solde: compteDebitApres.solde },
+      compteCredit: { id: compteCreditApres._id, solde: compteCreditApres.solde }
+    });
     
     // Extraire le commercantId depuis le compte débit
     const commercantId = transaction.compteDebit.proprietaireId;
