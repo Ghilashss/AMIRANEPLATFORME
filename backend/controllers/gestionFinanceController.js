@@ -650,13 +650,28 @@ exports.virementAgentVersAdmin = async (req, res) => {
     });
     
     if (!portefeuilleAdmin) {
-      // Créer le portefeuille admin s'il n'existe pas
+      // Trouver un utilisateur admin existant
+      let adminUser = await User.findOne({ role: 'admin' });
+      
+      // Si aucun admin n'existe, créer un ID générique pour l'admin
+      if (!adminUser) {
+        // Créer un ObjectId générique pour le portefeuille admin
+        const mongoose = require('mongoose');
+        adminUser = { _id: new mongoose.Types.ObjectId() };
+      }
+      
+      // Créer le portefeuille admin
       portefeuilleAdmin = await Portefeuille.create({
-        proprietaireId: adminId || 'admin',
+        proprietaireId: adminUser._id,
         typeProprietaire: 'Admin',
         nomProprietaire: 'Administrateur Général',
         solde: 0,
         devise: 'DA'
+      });
+      
+      console.log('✅ Portefeuille Admin créé:', {
+        id: portefeuilleAdmin._id,
+        proprietaireId: adminUser._id
       });
     }
     
