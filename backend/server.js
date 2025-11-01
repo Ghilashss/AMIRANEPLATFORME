@@ -59,6 +59,7 @@ app.use('/api/frais-livraison', require('./routes/fraisLivraison'));
 app.use('/api/livraisons', require('./routes/livraisons'));
 app.use('/api/retours', require('./routes/retours'));
 app.use('/api/finance', require('./routes/gestionFinance')); // Nouveau système de gestion financière
+app.use('/api/paiement-commercant', require('./routes/paiementCommercant')); // Paiements commerçants
 
 // Route de base
 app.get('/', (req, res) => {
