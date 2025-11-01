@@ -462,12 +462,12 @@ exports.obtenirTousPortefeuilles = async (req, res) => {
       success: true,
       portefeuilles: portefeuilles.map(p => ({
         id: p._id,
-        nom: p.nomProprietaire,
-        type: p.typeProprietaire,
+        nomProprietaire: p.nomProprietaire,
+        typeProprietaire: p.typeProprietaire,
         solde: p.solde,
         devise: p.devise,
         statut: p.statut,
-        derniereMiseAJour: p.derniereMiseAJour
+        derniereModification: p.derniereMiseAJour
       }))
     });
     
