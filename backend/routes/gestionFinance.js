@@ -56,4 +56,16 @@ router.get('/admin/portefeuilles', gestionFinanceController.obtenirTousPortefeui
 // Obtenir toutes les opérations (Admin uniquement)
 router.get('/admin/operations', gestionFinanceController.obtenirToutesOperations);
 
+// Route: POST /api/finance/admin/virements-agent-admin-en-attente
+// Obtenir les virements Agent→Admin en attente (Admin uniquement)
+router.post('/admin/virements-agent-admin-en-attente', gestionFinanceController.obtenirVirementsAgentAdminEnAttente);
+
+// Route: POST /api/finance/admin/valider-virement-agent-admin
+// Valider un virement Agent→Admin (Admin uniquement)
+router.post('/admin/valider-virement-agent-admin', gestionFinanceController.validerVirementAgentAdmin);
+
+// Route: POST /api/finance/admin/refuser-virement-agent-admin
+// Refuser un virement Agent→Admin (Admin uniquement)
+router.post('/admin/refuser-virement-agent-admin', gestionFinanceController.refuserVirementAgentAdmin);
+
 module.exports = router;

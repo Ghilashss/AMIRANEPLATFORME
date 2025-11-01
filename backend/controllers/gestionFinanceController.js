@@ -675,7 +675,7 @@ exports.virementAgentVersAdmin = async (req, res) => {
       });
     }
     
-    // Créer la transaction directement (sans vérification de solde)
+    // Créer la transaction en attente de validation admin
     const transaction = new OperationFinanciere({
       typeOperation: typeFrais === 'livraison' ? 'paiement_agence' : 'virement_manuel',
       montant: parseFloat(montant),
@@ -684,18 +684,20 @@ exports.virementAgentVersAdmin = async (req, res) => {
       description: description || `Virement frais de livraison - ${montant} DA`,
       methodePaiement: 'virement',
       effectuePar: req.user?._id,
-      statut: 'validee',
-      dateValidation: new Date()
+      statut: 'en_attente',  // L'admin doit valider
+      dateOperation: new Date()
     });
     await transaction.save();
     
-    // Mettre à jour les soldes
-    await portefeuilleAgence.mettreAJourSolde();
-    await portefeuilleAdmin.mettreAJourSolde();
+    console.log('✅ Virement Agent→Admin créé en attente de validation:', {
+      id: transaction._id,
+      montant: transaction.montant,
+      statut: transaction.statut
+    });
     
     res.json({
       success: true,
-      message: 'Virement effectué avec succès',
+      message: 'Virement créé avec succès - En attente de validation admin',
       transaction: {
         id: transaction._id,
         montant: transaction.montant,
@@ -946,6 +948,201 @@ exports.refuserVirementCommercant = async (req, res) => {
     
   } catch (error) {
     console.error('❌ Erreur refuserVirementCommercant:', error);
+    res.status(400).json({ 
+      success: false, 
+      message: error.message || 'Erreur lors du refus'
+    });
+  }
+};
+
+// ===================================================
+// LISTER LES VIREMENTS AGENT → ADMIN EN ATTENTE
+// ===================================================
+exports.obtenirVirementsAgentAdminEnAttente = async (req, res) => {
+  try {
+    console.log('📋 Récupération des virements Agent→Admin en attente...');
+    
+    // Récupérer le portefeuille admin
+    const portefeuilleAdmin = await Portefeuille.findOne({ 
+      typeProprietaire: 'Admin' 
+    });
+    
+    if (!portefeuilleAdmin) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Portefeuille admin introuvable' 
+      });
+    }
+    
+    // Récupérer les transactions en attente vers l'admin
+    const virements = await OperationFinanciere.find({
+      compteCredit: portefeuilleAdmin._id,
+      statut: 'en_attente',
+      typeOperation: { $in: ['paiement_agence', 'virement_manuel'] }
+    })
+    .populate('compteDebit', 'typeProprietaire proprietaireId')
+    .populate('effectuePar', 'nom prenom email')
+    .sort({ dateOperation: -1 });
+    
+    // Enrichir avec les infos de l'agence
+    const virementsEnrichis = await Promise.all(virements.map(async (virement) => {
+      let nomAgence = 'Agence inconnue';
+      
+      if (virement.compteDebit && virement.compteDebit.typeProprietaire === 'Agence') {
+        const agence = await mongoose.model('Agence').findById(virement.compteDebit.proprietaireId);
+        if (agence) {
+          nomAgence = agence.nom || `Agence ${agence.codeAgence}`;
+        }
+      }
+      
+      return {
+        id: virement._id,
+        montant: virement.montant,
+        description: virement.description,
+        dateOperation: virement.dateOperation,
+        nomAgence: nomAgence,
+        effectuePar: virement.effectuePar ? {
+          nom: virement.effectuePar.nom,
+          prenom: virement.effectuePar.prenom,
+          email: virement.effectuePar.email
+        } : null
+      };
+    }));
+    
+    console.log(`✅ ${virementsEnrichis.length} virements Agent→Admin en attente`);
+    
+    res.json({
+      success: true,
+      virements: virementsEnrichis
+    });
+    
+  } catch (error) {
+    console.error('❌ Erreur obtenirVirementsAgentAdminEnAttente:', error);
+    res.status(400).json({ 
+      success: false, 
+      message: error.message || 'Erreur lors de la récupération des virements'
+    });
+  }
+};
+
+// ===================================================
+// VALIDER UN VIREMENT AGENT → ADMIN
+// ===================================================
+exports.validerVirementAgentAdmin = async (req, res) => {
+  try {
+    const { transactionId } = req.body;
+    
+    console.log('✅ Validation virement Agent→Admin:', transactionId);
+    
+    if (!transactionId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'ID de transaction manquant' 
+      });
+    }
+    
+    // Récupérer la transaction
+    const transaction = await OperationFinanciere.findById(transactionId);
+    
+    if (!transaction) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Transaction introuvable' 
+      });
+    }
+    
+    if (transaction.statut !== 'en_attente') {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Transaction déjà ${transaction.statut}` 
+      });
+    }
+    
+    // Valider la transaction
+    await transaction.valider(req.user?._id);
+    
+    // Mettre à jour les soldes
+    const portefeuilleAgence = await Portefeuille.findById(transaction.compteDebit);
+    const portefeuilleAdmin = await Portefeuille.findById(transaction.compteCredit);
+    
+    if (portefeuilleAgence) {
+      await portefeuilleAgence.mettreAJourSolde();
+    }
+    
+    if (portefeuilleAdmin) {
+      await portefeuilleAdmin.mettreAJourSolde();
+    }
+    
+    console.log(`✅ Virement Agent→Admin validé: ${transaction.montant} DA`);
+    
+    res.json({
+      success: true,
+      message: 'Virement validé avec succès',
+      transaction: {
+        id: transaction._id,
+        statut: transaction.statut,
+        montant: transaction.montant
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Erreur validerVirementAgentAdmin:', error);
+    res.status(400).json({ 
+      success: false, 
+      message: error.message || 'Erreur lors de la validation'
+    });
+  }
+};
+
+// ===================================================
+// REFUSER UN VIREMENT AGENT → ADMIN
+// ===================================================
+exports.refuserVirementAgentAdmin = async (req, res) => {
+  try {
+    const { transactionId, raison } = req.body;
+    
+    console.log('❌ Refus virement Agent→Admin:', transactionId);
+    
+    if (!transactionId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'ID de transaction manquant' 
+      });
+    }
+    
+    // Récupérer la transaction
+    const transaction = await OperationFinanciere.findById(transactionId);
+    
+    if (!transaction) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Transaction introuvable' 
+      });
+    }
+    
+    if (transaction.statut !== 'en_attente') {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Transaction déjà ${transaction.statut}` 
+      });
+    }
+    
+    // Annuler la transaction
+    await transaction.annuler(raison || 'Refusé par l\'admin');
+    
+    console.log(`❌ Virement Agent→Admin refusé: ${transaction.montant} DA`);
+    
+    res.json({
+      success: true,
+      message: 'Virement refusé',
+      transaction: {
+        id: transaction._id,
+        statut: transaction.statut
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Erreur refuserVirementAgentAdmin:', error);
     res.status(400).json({ 
       success: false, 
       message: error.message || 'Erreur lors du refus'
