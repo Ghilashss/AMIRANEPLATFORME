@@ -1,8 +1,5 @@
 const Livraison = require('../models/Livraison');
 const Colis = require('../models/Colis');
-const Portefeuille = require('../models/Portefeuille');
-const OperationFinanciere = require('../models/OperationFinanciere');
-const User = require('../models/User');
 
 // Créer une nouvelle livraison
 exports.createLivraison = async (req, res) => {
@@ -49,7 +46,7 @@ exports.createLivraison = async (req, res) => {
         colis.dateLivraison = livraison.dateLivraison;
         // ⚠️ NE PAS marquer comme payé au commerçant automatiquement
         // L'agent devra verser manuellement
-        colis.payeAuCommercant = false;
+        colis.paye = false;
         await colis.save();
 
         console.log(`✅ Colis ${colis.tracking} marqué livré - En attente de paiement au commerçant`);
