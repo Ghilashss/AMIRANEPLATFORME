@@ -93,29 +93,32 @@ exports.getMontantARecevoir = async (req, res) => {
 };
 
 // ===================================================
-// AGENT: VERSER MONTANT � UN COMMER�ANT
+// AGENT: VERSER MONTANT À UN COMMERÇANT
 // ===================================================
+// L'agent effectue 2 virements automatiquement :
+// 1. PRIX des colis → Commerçant
+// 2. FRAIS de livraison → Admin
 exports.verserAuCommercant = async (req, res) => {
   try {
     const { colisIds, commercantId, montantTotal } = req.body;
     
-    console.log('?? Demande de versement au commer�ant:');
-    console.log(`   Commer�ant: ${commercantId}`);
+    console.log('💰 Demande de versement au commerçant:');
+    console.log(`   Commerçant: ${commercantId}`);
     console.log(`   Nombre de colis: ${colisIds?.length || 0}`);
-    console.log(`   Montant total: ${montantTotal} DA`);
+    console.log(`   Montant total demandé: ${montantTotal} DA`);
     
     // Validation
     if (!colisIds || colisIds.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'Aucun colis s�lectionn�'
+        message: 'Aucun colis sélectionné'
       });
     }
     
     if (!commercantId) {
       return res.status(400).json({
         success: false,
-        message: 'ID commer�ant requis'
+        message: 'ID commerçant requis'
       });
     }
     
@@ -126,7 +129,7 @@ exports.verserAuCommercant = async (req, res) => {
       });
     }
     
-    // V�rifier que tous les colis existent et sont livr�s non pay�s
+    // Vérifier que tous les colis existent et sont livrés non payés
     const colis = await Colis.find({
       _id: { $in: colisIds },
       'expediteur.id': commercantId,
@@ -137,17 +140,29 @@ exports.verserAuCommercant = async (req, res) => {
     if (colis.length !== colisIds.length) {
       return res.status(400).json({
         success: false,
-        message: 'Certains colis sont invalides ou d�j� pay�s'
+        message: 'Certains colis sont invalides ou déjà payés'
       });
     }
     
-    // Calculer le montant r�el
-    const montantReel = colis.reduce((sum, c) => sum + (c.montant || 0), 0);
+    // Calculer PRIX (montant des colis) et FRAIS DE LIVRAISON
+    let montantPrixColis = 0;
+    let montantFraisLivraison = 0;
     
-    if (Math.abs(montantReel - montantTotal) > 1) {
+    colis.forEach(c => {
+      montantPrixColis += c.montant || 0;
+      montantFraisLivraison += c.fraisLivraison || 0;
+    });
+    
+    console.log(`📊 Décomposition:`);
+    console.log(`   Prix des colis (vers commerçant): ${montantPrixColis} DA`);
+    console.log(`   Frais de livraison (vers admin): ${montantFraisLivraison} DA`);
+    console.log(`   Total: ${montantPrixColis + montantFraisLivraison} DA`);
+    
+    // Vérifier que le montant demandé correspond au prix des colis
+    if (Math.abs(montantPrixColis - montantTotal) > 1) {
       return res.status(400).json({
         success: false,
-        message: `Montant incorrect: attendu ${montantReel} DA, re�u ${montantTotal} DA`
+        message: `Montant incorrect: attendu ${montantPrixColis} DA (prix colis), reçu ${montantTotal} DA`
       });
     }
     
@@ -165,18 +180,7 @@ exports.verserAuCommercant = async (req, res) => {
       });
     }
     
-    // VÉRIFICATION SOLDE DÉSACTIVÉE - Permet paiement même avec solde insuffisant
-    // L'agent peut avoir un solde négatif temporairement
-    /*
-    if (portefeuilleAgent.solde < montantReel) {
-      return res.status(400).json({
-        success: false,
-        message: `Solde insuffisant: ${portefeuilleAgent.solde} DA < ${montantReel} DA`
-      });
-    }
-    */
-    
-    // Trouver ou cr�er portefeuille commer�ant
+    // Trouver ou créer portefeuille commerçant
     let portefeuilleCommercant = await Portefeuille.findOne({
       proprietaireId: commercantId,
       typeProprietaire: 'User'
@@ -187,43 +191,90 @@ exports.verserAuCommercant = async (req, res) => {
       if (!commercant) {
         return res.status(404).json({
           success: false,
-          message: 'Commer�ant introuvable'
+          message: 'Commerçant introuvable'
         });
       }
       
       portefeuilleCommercant = new Portefeuille({
         proprietaireId: commercantId,
         typeProprietaire: 'User',
-        nomProprietaire: commercant.nom || 'Commer�ant',
+        nomProprietaire: commercant.nom || 'Commerçant',
         solde: 0
       });
       await portefeuilleCommercant.save();
-      console.log('? Portefeuille commer�ant cr��');
+      console.log('✅ Portefeuille commerçant créé');
     }
     
-    // Créer l'opération financière
-    const operation = new OperationFinanciere({
+    // Trouver portefeuille admin
+    const admin = await User.findOne({ role: 'admin' });
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: 'Administrateur introuvable'
+      });
+    }
+    
+    let portefeuilleAdmin = await Portefeuille.findOne({
+      proprietaireId: admin._id,
+      typeProprietaire: 'User'
+    });
+    
+    if (!portefeuilleAdmin) {
+      portefeuilleAdmin = new Portefeuille({
+        proprietaireId: admin._id,
+        typeProprietaire: 'User',
+        nomProprietaire: 'Admin',
+        solde: 0
+      });
+      await portefeuilleAdmin.save();
+      console.log('✅ Portefeuille admin créé');
+    }
+    
+    // ===== OPÉRATION 1: PRIX DES COLIS → COMMERÇANT =====
+    const operationPrixColis = new OperationFinanciere({
       typeOperation: 'paiement_livraison',
-      montant: montantReel,
+      montant: montantPrixColis,
       compteDebit: portefeuilleAgent._id,
       compteCredit: portefeuilleCommercant._id,
-      description: `Paiement ${colis.length} colis livrés (${colis.map(c => c.tracking).join(', ')})`,
+      description: `Paiement prix ${colis.length} colis livrés (${colis.map(c => c.tracking).join(', ')})`,
       statut: 'validee',
       methodePaiement: 'virement',
       effectuePar: req.user._id,
-      notes: `Paiement manuel par agent ${req.user.nom || req.user.email}`
+      notes: `Virement prix colis par agent ${req.user.nom || req.user.email}`
     });
     
-    await operation.save();
+    await operationPrixColis.save();
+    console.log(`✅ Opération 1: ${montantPrixColis} DA → Commerçant`);
     
-    // Mettre � jour les soldes
-    portefeuilleAgent.solde -= montantReel;
-    portefeuilleCommercant.solde += montantReel;
+    // ===== OPÉRATION 2: FRAIS DE LIVRAISON → ADMIN =====
+    let operationFraisLivraison = null;
+    if (montantFraisLivraison > 0) {
+      operationFraisLivraison = new OperationFinanciere({
+        typeOperation: 'paiement_agence',
+        montant: montantFraisLivraison,
+        compteDebit: portefeuilleAgent._id,
+        compteCredit: portefeuilleAdmin._id,
+        description: `Frais de livraison ${colis.length} colis (${colis.map(c => c.tracking).join(', ')})`,
+        statut: 'validee',
+        methodePaiement: 'virement',
+        effectuePar: req.user._id,
+        notes: `Virement frais livraison par agent ${req.user.nom || req.user.email}`
+      });
+      
+      await operationFraisLivraison.save();
+      console.log(`✅ Opération 2: ${montantFraisLivraison} DA → Admin`);
+    }
+    
+    // Mettre à jour les soldes
+    portefeuilleAgent.solde -= (montantPrixColis + montantFraisLivraison);
+    portefeuilleCommercant.solde += montantPrixColis;
+    portefeuilleAdmin.solde += montantFraisLivraison;
     
     await portefeuilleAgent.save();
     await portefeuilleCommercant.save();
+    await portefeuilleAdmin.save();
     
-    // Marquer les colis comme pay�s
+    // Marquer les colis comme payés
     await Colis.updateMany(
       { _id: { $in: colisIds } },
       {
@@ -234,20 +285,29 @@ exports.verserAuCommercant = async (req, res) => {
       }
     );
     
-    console.log(`? Paiement effectu�: ${montantReel} DA ? ${portefeuilleCommercant.nomProprietaire}`);
-    console.log(`   ${colis.length} colis marqu�s pay�s`);
-    console.log(`   Nouveau solde agent: ${portefeuilleAgent.solde} DA`);
-    console.log(`   Nouveau solde commer�ant: ${portefeuilleCommercant.solde} DA`);
+    console.log(`✅ Paiement effectué avec succès:`);
+    console.log(`   → ${montantPrixColis} DA versés au commerçant`);
+    console.log(`   → ${montantFraisLivraison} DA versés à l'admin`);
+    console.log(`   → ${colis.length} colis marqués payés`);
+    console.log(`   → Nouveau solde agent: ${portefeuilleAgent.solde} DA`);
+    console.log(`   → Nouveau solde commerçant: ${portefeuilleCommercant.solde} DA`);
+    console.log(`   → Nouveau solde admin: ${portefeuilleAdmin.solde} DA`);
     
     res.json({
       success: true,
-      message: `Paiement de ${montantReel} DA effectu� avec succ�s`,
-      operation: {
-        id: operation._id,
-        montant: montantReel,
-        nombreColis: colis.length,
+      message: `Paiement effectué avec succès`,
+      details: {
+        prixColisVerse: montantPrixColis,
+        fraisLivraisonVerse: montantFraisLivraison,
+        totalDebite: montantPrixColis + montantFraisLivraison,
+        nombreColis: colis.length
+      },
+      operations: {
+        prixColis: operationPrixColis._id,
+        fraisLivraison: operationFraisLivraison ? operationFraisLivraison._id : null,
         nouveauSoldeAgent: portefeuilleAgent.solde,
-        nouveauSoldeCommercant: portefeuilleCommercant.solde
+        nouveauSoldeCommercant: portefeuilleCommercant.solde,
+        nouveauSoldeAdmin: portefeuilleAdmin.solde
       }
     });
     
@@ -300,16 +360,19 @@ exports.getCommercantsPaiements = async (req, res) => {
           commercantTel: c.expediteur?.telephone || c.expediteur?.id?.telephone || '',
           nombreColis: 0,
           montantTotal: 0,
+          montantFraisLivraison: 0,
           colis: []
         };
       }
       
       commercantsMap[comIdStr].nombreColis++;
       commercantsMap[comIdStr].montantTotal += (c.montant || 0);
+      commercantsMap[comIdStr].montantFraisLivraison += (c.fraisLivraison || 0);
       commercantsMap[comIdStr].colis.push({
         id: c._id,
         tracking: c.tracking,
         montant: c.montant,
+        fraisLivraison: c.fraisLivraison,
         dateLivraison: c.dateLivraison
       });
     });
