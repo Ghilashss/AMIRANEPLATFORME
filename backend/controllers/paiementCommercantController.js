@@ -4,7 +4,7 @@ const OperationFinanciere = require('../models/OperationFinanciere');
 const User = require('../models/User');
 
 // ===================================================
-// OBTENIR COLIS LIVRÉS NON PAYÉS POUR UN COMMERÇANT
+// OBTENIR COLIS LIVRï¿½S NON PAYï¿½S POUR UN COMMERï¿½ANT
 // ===================================================
 exports.getColisLivresNonPayes = async (req, res) => {
   try {
@@ -13,22 +13,22 @@ exports.getColisLivresNonPayes = async (req, res) => {
     if (!commercantId) {
       return res.status(400).json({
         success: false,
-        message: 'ID commerçant requis'
+        message: 'ID commerï¿½ant requis'
       });
     }
     
-    console.log(`?? Recherche colis livrés non payés pour commerçant: ${commercantId}`);
+    console.log(`?? Recherche colis livrï¿½s non payï¿½s pour commerï¿½ant: ${commercantId}`);
     
-    // Trouver tous les colis livrés mais non payés
+    // Trouver tous les colis livrï¿½s mais non payï¿½s
     const colis = await Colis.find({
       'expediteur.id': commercantId,
       status: 'livre',
       paye: false
     }).sort({ dateLivraison: -1 });
     
-    console.log(`?? ${colis.length} colis livrés non payés trouvés`);
+    console.log(`?? ${colis.length} colis livrï¿½s non payï¿½s trouvï¿½s`);
     
-    // Calculer le montant total à recevoir
+    // Calculer le montant total ï¿½ recevoir
     const montantTotal = colis.reduce((sum, c) => sum + (c.montant || 0), 0);
     
     res.json({
@@ -49,7 +49,7 @@ exports.getColisLivresNonPayes = async (req, res) => {
 };
 
 // ===================================================
-// OBTENIR MONTANT À RECEVOIR POUR UN COMMERÇANT
+// OBTENIR MONTANT ï¿½ RECEVOIR POUR UN COMMERï¿½ANT
 // ===================================================
 exports.getMontantARecevoir = async (req, res) => {
   try {
@@ -58,13 +58,13 @@ exports.getMontantARecevoir = async (req, res) => {
     if (!commercantId) {
       return res.status(400).json({
         success: false,
-        message: 'ID commerçant requis'
+        message: 'ID commerï¿½ant requis'
       });
     }
     
-    console.log(`?? Calcul montant à recevoir pour: ${commercantId}`);
+    console.log(`?? Calcul montant ï¿½ recevoir pour: ${commercantId}`);
     
-    // Compter les colis livrés non payés
+    // Compter les colis livrï¿½s non payï¿½s
     const colis = await Colis.find({
       'expediteur.id': commercantId,
       status: 'livre',
@@ -93,14 +93,14 @@ exports.getMontantARecevoir = async (req, res) => {
 };
 
 // ===================================================
-// AGENT: VERSER MONTANT À UN COMMERÇANT
+// AGENT: VERSER MONTANT ï¿½ UN COMMERï¿½ANT
 // ===================================================
 exports.verserAuCommercant = async (req, res) => {
   try {
     const { colisIds, commercantId, montantTotal } = req.body;
     
-    console.log('?? Demande de versement au commerçant:');
-    console.log(`   Commerçant: ${commercantId}`);
+    console.log('?? Demande de versement au commerï¿½ant:');
+    console.log(`   Commerï¿½ant: ${commercantId}`);
     console.log(`   Nombre de colis: ${colisIds?.length || 0}`);
     console.log(`   Montant total: ${montantTotal} DA`);
     
@@ -108,14 +108,14 @@ exports.verserAuCommercant = async (req, res) => {
     if (!colisIds || colisIds.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'Aucun colis sélectionné'
+        message: 'Aucun colis sï¿½lectionnï¿½'
       });
     }
     
     if (!commercantId) {
       return res.status(400).json({
         success: false,
-        message: 'ID commerçant requis'
+        message: 'ID commerï¿½ant requis'
       });
     }
     
@@ -126,7 +126,7 @@ exports.verserAuCommercant = async (req, res) => {
       });
     }
     
-    // Vérifier que tous les colis existent et sont livrés non payés
+    // Vï¿½rifier que tous les colis existent et sont livrï¿½s non payï¿½s
     const colis = await Colis.find({
       _id: { $in: colisIds },
       'expediteur.id': commercantId,
@@ -137,17 +137,17 @@ exports.verserAuCommercant = async (req, res) => {
     if (colis.length !== colisIds.length) {
       return res.status(400).json({
         success: false,
-        message: 'Certains colis sont invalides ou déjà payés'
+        message: 'Certains colis sont invalides ou dï¿½jï¿½ payï¿½s'
       });
     }
     
-    // Calculer le montant réel
+    // Calculer le montant rï¿½el
     const montantReel = colis.reduce((sum, c) => sum + (c.montant || 0), 0);
     
     if (Math.abs(montantReel - montantTotal) > 1) {
       return res.status(400).json({
         success: false,
-        message: `Montant incorrect: attendu ${montantReel} DA, reçu ${montantTotal} DA`
+        message: `Montant incorrect: attendu ${montantReel} DA, reï¿½u ${montantTotal} DA`
       });
     }
     
@@ -165,15 +165,18 @@ exports.verserAuCommercant = async (req, res) => {
       });
     }
     
-    // Vérifier le solde
+    // VÃ‰RIFICATION SOLDE DÃ‰SACTIVÃ‰E - Permet paiement mÃªme avec solde insuffisant
+    // L'agent peut avoir un solde nÃ©gatif temporairement
+    /*
     if (portefeuilleAgent.solde < montantReel) {
       return res.status(400).json({
         success: false,
         message: `Solde insuffisant: ${portefeuilleAgent.solde} DA < ${montantReel} DA`
       });
     }
+    */
     
-    // Trouver ou créer portefeuille commerçant
+    // Trouver ou crï¿½er portefeuille commerï¿½ant
     let portefeuilleCommercant = await Portefeuille.findOne({
       proprietaireId: commercantId,
       typeProprietaire: 'User'
@@ -184,21 +187,21 @@ exports.verserAuCommercant = async (req, res) => {
       if (!commercant) {
         return res.status(404).json({
           success: false,
-          message: 'Commerçant introuvable'
+          message: 'Commerï¿½ant introuvable'
         });
       }
       
       portefeuilleCommercant = new Portefeuille({
         proprietaireId: commercantId,
         typeProprietaire: 'User',
-        nomProprietaire: commercant.nom || 'Commerçant',
+        nomProprietaire: commercant.nom || 'Commerï¿½ant',
         solde: 0
       });
       await portefeuilleCommercant.save();
-      console.log('? Portefeuille commerçant créé');
+      console.log('? Portefeuille commerï¿½ant crï¿½ï¿½');
     }
     
-    // Créer l'opération financière
+    // Crï¿½er l'opï¿½ration financiï¿½re
     const operation = new OperationFinanciere({
       type: 'virement',
       montant: montantReel,
@@ -214,21 +217,21 @@ exports.verserAuCommercant = async (req, res) => {
         type: 'User',
         nom: portefeuilleCommercant.nomProprietaire
       },
-      description: `Paiement ${colis.length} colis livrés (${colis.map(c => c.tracking).join(', ')})`,
+      description: `Paiement ${colis.length} colis livrï¿½s (${colis.map(c => c.tracking).join(', ')})`,
       statut: 'validee',
       referenceTransaction: `PAIEMENT-COM-${Date.now()}`
     });
     
     await operation.save();
     
-    // Mettre à jour les soldes
+    // Mettre ï¿½ jour les soldes
     portefeuilleAgent.solde -= montantReel;
     portefeuilleCommercant.solde += montantReel;
     
     await portefeuilleAgent.save();
     await portefeuilleCommercant.save();
     
-    // Marquer les colis comme payés
+    // Marquer les colis comme payï¿½s
     await Colis.updateMany(
       { _id: { $in: colisIds } },
       {
@@ -239,14 +242,14 @@ exports.verserAuCommercant = async (req, res) => {
       }
     );
     
-    console.log(`? Paiement effectué: ${montantReel} DA ? ${portefeuilleCommercant.nomProprietaire}`);
-    console.log(`   ${colis.length} colis marqués payés`);
+    console.log(`? Paiement effectuï¿½: ${montantReel} DA ? ${portefeuilleCommercant.nomProprietaire}`);
+    console.log(`   ${colis.length} colis marquï¿½s payï¿½s`);
     console.log(`   Nouveau solde agent: ${portefeuilleAgent.solde} DA`);
-    console.log(`   Nouveau solde commerçant: ${portefeuilleCommercant.solde} DA`);
+    console.log(`   Nouveau solde commerï¿½ant: ${portefeuilleCommercant.solde} DA`);
     
     res.json({
       success: true,
-      message: `Paiement de ${montantReel} DA effectué avec succès`,
+      message: `Paiement de ${montantReel} DA effectuï¿½ avec succï¿½s`,
       operation: {
         id: operation._id,
         montant: montantReel,
@@ -267,11 +270,11 @@ exports.verserAuCommercant = async (req, res) => {
 };
 
 // ===================================================
-// AGENT: LISTE DES COMMERÇANTS AVEC MONTANTS À PAYER
+// AGENT: LISTE DES COMMERï¿½ANTS AVEC MONTANTS ï¿½ PAYER
 // ===================================================
 exports.getCommercantsPaiements = async (req, res) => {
   try {
-    console.log('?? Liste des commerçants avec paiements en attente...');
+    console.log('?? Liste des commerï¿½ants avec paiements en attente...');
     
     // Filtrage par agence si c'est un agent
     let query = {
@@ -289,7 +292,7 @@ exports.getCommercantsPaiements = async (req, res) => {
     
     const colis = await Colis.find(query).populate('expediteur.id', 'nom email telephone');
     
-    // Grouper par commerçant
+    // Grouper par commerï¿½ant
     const commercantsMap = {};
     
     colis.forEach(c => {
@@ -321,7 +324,7 @@ exports.getCommercantsPaiements = async (req, res) => {
     
     const commercants = Object.values(commercantsMap);
     
-    console.log(`? ${commercants.length} commerçants avec paiements en attente`);
+    console.log(`? ${commercants.length} commerï¿½ants avec paiements en attente`);
     
     res.json({
       success: true,
