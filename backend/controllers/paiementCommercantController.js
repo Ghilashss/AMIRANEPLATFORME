@@ -201,8 +201,9 @@ exports.verserAuCommercant = async (req, res) => {
       console.log('? Portefeuille commer�ant cr��');
     }
     
-    // Cr�er l'op�ration financi�re
+    // Créer l'opération financière
     const operation = new OperationFinanciere({
+      typeOperation: 'virement',
       type: 'virement',
       montant: montantReel,
       portefeuilleSource: portefeuilleAgent._id,
@@ -217,7 +218,7 @@ exports.verserAuCommercant = async (req, res) => {
         type: 'User',
         nom: portefeuilleCommercant.nomProprietaire
       },
-      description: `Paiement ${colis.length} colis livr�s (${colis.map(c => c.tracking).join(', ')})`,
+      description: `Paiement ${colis.length} colis livrés (${colis.map(c => c.tracking).join(', ')})`,
       statut: 'validee',
       referenceTransaction: `PAIEMENT-COM-${Date.now()}`
     });
