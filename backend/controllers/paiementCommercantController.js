@@ -1,10 +1,10 @@
-Ôªøconst Colis = require('../models/Colis');
+const Colis = require('../models/Colis');
 const Portefeuille = require('../models/Portefeuille');
 const OperationFinanciere = require('../models/OperationFinanciere');
 const User = require('../models/User');
 
 // ===================================================
-// OBTENIR COLIS LIVR√âS NON PAY√âS POUR UN COMMER√áANT
+// OBTENIR COLIS LIVR…S NON PAY…S POUR UN COMMER«ANT
 // ===================================================
 exports.getColisLivresNonPayes = async (req, res) => {
   try {
@@ -13,22 +13,22 @@ exports.getColisLivresNonPayes = async (req, res) => {
     if (!commercantId) {
       return res.status(400).json({
         success: false,
-        message: 'ID commer√ßant requis'
+        message: 'ID commerÁant requis'
       });
     }
     
-    console.log(`üîç Recherche colis livr√©s non pay√©s pour commer√ßant: ${commercantId}`);
+    console.log(`?? Recherche colis livrÈs non payÈs pour commerÁant: ${commercantId}`);
     
-    // Trouver tous les colis livr√©s mais non pay√©s
+    // Trouver tous les colis livrÈs mais non payÈs
     const colis = await Colis.find({
       'expediteur.id': commercantId,
-      statut: 'livre',
+      status: 'livre',
       paye: false
     }).sort({ dateLivraison: -1 });
     
-    console.log(`üì¶ ${colis.length} colis livr√©s non pay√©s trouv√©s`);
+    console.log(`?? ${colis.length} colis livrÈs non payÈs trouvÈs`);
     
-    // Calculer le montant total √† recevoir
+    // Calculer le montant total ‡ recevoir
     const montantTotal = colis.reduce((sum, c) => sum + (c.montant || 0), 0);
     
     res.json({
@@ -39,7 +39,7 @@ exports.getColisLivresNonPayes = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('‚ùå Erreur getColisLivresNonPayes:', error);
+    console.error('? Erreur getColisLivresNonPayes:', error);
     res.status(500).json({
       success: false,
       message: 'Erreur serveur',
@@ -49,7 +49,7 @@ exports.getColisLivresNonPayes = async (req, res) => {
 };
 
 // ===================================================
-// OBTENIR MONTANT √Ä RECEVOIR POUR UN COMMER√áANT
+// OBTENIR MONTANT ¿ RECEVOIR POUR UN COMMER«ANT
 // ===================================================
 exports.getMontantARecevoir = async (req, res) => {
   try {
@@ -58,23 +58,23 @@ exports.getMontantARecevoir = async (req, res) => {
     if (!commercantId) {
       return res.status(400).json({
         success: false,
-        message: 'ID commer√ßant requis'
+        message: 'ID commerÁant requis'
       });
     }
     
-    console.log(`üí∞ Calcul montant √† recevoir pour: ${commercantId}`);
+    console.log(`?? Calcul montant ‡ recevoir pour: ${commercantId}`);
     
-    // Compter les colis livr√©s non pay√©s
+    // Compter les colis livrÈs non payÈs
     const colis = await Colis.find({
       'expediteur.id': commercantId,
-      statut: 'livre',
+      status: 'livre',
       paye: false
     });
     
     const montantTotal = colis.reduce((sum, c) => sum + (c.montant || 0), 0);
     const nombreColis = colis.length;
     
-    console.log(`‚úÖ ${nombreColis} colis, total: ${montantTotal} DA`);
+    console.log(`? ${nombreColis} colis, total: ${montantTotal} DA`);
     
     res.json({
       success: true,
@@ -83,7 +83,7 @@ exports.getMontantARecevoir = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('‚ùå Erreur getMontantARecevoir:', error);
+    console.error('? Erreur getMontantARecevoir:', error);
     res.status(500).json({
       success: false,
       message: 'Erreur serveur',
@@ -93,14 +93,14 @@ exports.getMontantARecevoir = async (req, res) => {
 };
 
 // ===================================================
-// AGENT: VERSER MONTANT √Ä UN COMMER√áANT
+// AGENT: VERSER MONTANT ¿ UN COMMER«ANT
 // ===================================================
 exports.verserAuCommercant = async (req, res) => {
   try {
     const { colisIds, commercantId, montantTotal } = req.body;
     
-    console.log('üíµ Demande de versement au commer√ßant:');
-    console.log(`   Commer√ßant: ${commercantId}`);
+    console.log('?? Demande de versement au commerÁant:');
+    console.log(`   CommerÁant: ${commercantId}`);
     console.log(`   Nombre de colis: ${colisIds?.length || 0}`);
     console.log(`   Montant total: ${montantTotal} DA`);
     
@@ -108,14 +108,14 @@ exports.verserAuCommercant = async (req, res) => {
     if (!colisIds || colisIds.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'Aucun colis s√©lectionn√©'
+        message: 'Aucun colis sÈlectionnÈ'
       });
     }
     
     if (!commercantId) {
       return res.status(400).json({
         success: false,
-        message: 'ID commer√ßant requis'
+        message: 'ID commerÁant requis'
       });
     }
     
@@ -126,28 +126,28 @@ exports.verserAuCommercant = async (req, res) => {
       });
     }
     
-    // V√©rifier que tous les colis existent et sont livr√©s non pay√©s
+    // VÈrifier que tous les colis existent et sont livrÈs non payÈs
     const colis = await Colis.find({
       _id: { $in: colisIds },
       'expediteur.id': commercantId,
-      statut: 'livre',
+      status: 'livre',
       paye: false
     });
     
     if (colis.length !== colisIds.length) {
       return res.status(400).json({
         success: false,
-        message: 'Certains colis sont invalides ou d√©j√† pay√©s'
+        message: 'Certains colis sont invalides ou dÈj‡ payÈs'
       });
     }
     
-    // Calculer le montant r√©el
+    // Calculer le montant rÈel
     const montantReel = colis.reduce((sum, c) => sum + (c.montant || 0), 0);
     
     if (Math.abs(montantReel - montantTotal) > 1) {
       return res.status(400).json({
         success: false,
-        message: `Montant incorrect: attendu ${montantReel} DA, re√ßu ${montantTotal} DA`
+        message: `Montant incorrect: attendu ${montantReel} DA, reÁu ${montantTotal} DA`
       });
     }
     
@@ -165,7 +165,7 @@ exports.verserAuCommercant = async (req, res) => {
       });
     }
     
-    // V√©rifier le solde
+    // VÈrifier le solde
     if (portefeuilleAgent.solde < montantReel) {
       return res.status(400).json({
         success: false,
@@ -173,7 +173,7 @@ exports.verserAuCommercant = async (req, res) => {
       });
     }
     
-    // Trouver ou cr√©er portefeuille commer√ßant
+    // Trouver ou crÈer portefeuille commerÁant
     let portefeuilleCommercant = await Portefeuille.findOne({
       proprietaireId: commercantId,
       typeProprietaire: 'User'
@@ -184,21 +184,21 @@ exports.verserAuCommercant = async (req, res) => {
       if (!commercant) {
         return res.status(404).json({
           success: false,
-          message: 'Commer√ßant introuvable'
+          message: 'CommerÁant introuvable'
         });
       }
       
       portefeuilleCommercant = new Portefeuille({
         proprietaireId: commercantId,
         typeProprietaire: 'User',
-        nomProprietaire: commercant.nom || 'Commer√ßant',
+        nomProprietaire: commercant.nom || 'CommerÁant',
         solde: 0
       });
       await portefeuilleCommercant.save();
-      console.log('‚úÖ Portefeuille commer√ßant cr√©√©');
+      console.log('? Portefeuille commerÁant crÈÈ');
     }
     
-    // Cr√©er l'op√©ration financi√®re
+    // CrÈer l'opÈration financiËre
     const operation = new OperationFinanciere({
       type: 'virement',
       montant: montantReel,
@@ -214,21 +214,21 @@ exports.verserAuCommercant = async (req, res) => {
         type: 'User',
         nom: portefeuilleCommercant.nomProprietaire
       },
-      description: `Paiement ${colis.length} colis livr√©s (${colis.map(c => c.tracking).join(', ')})`,
+      description: `Paiement ${colis.length} colis livrÈs (${colis.map(c => c.tracking).join(', ')})`,
       statut: 'validee',
       referenceTransaction: `PAIEMENT-COM-${Date.now()}`
     });
     
     await operation.save();
     
-    // Mettre √† jour les soldes
+    // Mettre ‡ jour les soldes
     portefeuilleAgent.solde -= montantReel;
     portefeuilleCommercant.solde += montantReel;
     
     await portefeuilleAgent.save();
     await portefeuilleCommercant.save();
     
-    // Marquer les colis comme pay√©s
+    // Marquer les colis comme payÈs
     await Colis.updateMany(
       { _id: { $in: colisIds } },
       {
@@ -239,14 +239,14 @@ exports.verserAuCommercant = async (req, res) => {
       }
     );
     
-    console.log(`‚úÖ Paiement effectu√©: ${montantReel} DA ‚Üí ${portefeuilleCommercant.nomProprietaire}`);
-    console.log(`   ${colis.length} colis marqu√©s pay√©s`);
+    console.log(`? Paiement effectuÈ: ${montantReel} DA ? ${portefeuilleCommercant.nomProprietaire}`);
+    console.log(`   ${colis.length} colis marquÈs payÈs`);
     console.log(`   Nouveau solde agent: ${portefeuilleAgent.solde} DA`);
-    console.log(`   Nouveau solde commer√ßant: ${portefeuilleCommercant.solde} DA`);
+    console.log(`   Nouveau solde commerÁant: ${portefeuilleCommercant.solde} DA`);
     
     res.json({
       success: true,
-      message: `Paiement de ${montantReel} DA effectu√© avec succ√®s`,
+      message: `Paiement de ${montantReel} DA effectuÈ avec succËs`,
       operation: {
         id: operation._id,
         montant: montantReel,
@@ -257,7 +257,7 @@ exports.verserAuCommercant = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('‚ùå Erreur verserAuCommercant:', error);
+    console.error('? Erreur verserAuCommercant:', error);
     res.status(500).json({
       success: false,
       message: 'Erreur serveur',
@@ -267,15 +267,15 @@ exports.verserAuCommercant = async (req, res) => {
 };
 
 // ===================================================
-// AGENT: LISTE DES COMMER√áANTS AVEC MONTANTS √Ä PAYER
+// AGENT: LISTE DES COMMER«ANTS AVEC MONTANTS ¿ PAYER
 // ===================================================
 exports.getCommercantsPaiements = async (req, res) => {
   try {
-    console.log('üìã Liste des commer√ßants avec paiements en attente...');
+    console.log('?? Liste des commerÁants avec paiements en attente...');
     
     // Filtrage par agence si c'est un agent
     let query = {
-      statut: 'livre',
+      status: 'livre',
       paye: false
     };
     
@@ -289,7 +289,7 @@ exports.getCommercantsPaiements = async (req, res) => {
     
     const colis = await Colis.find(query).populate('expediteur.id', 'nom email telephone');
     
-    // Grouper par commer√ßant
+    // Grouper par commerÁant
     const commercantsMap = {};
     
     colis.forEach(c => {
@@ -321,7 +321,7 @@ exports.getCommercantsPaiements = async (req, res) => {
     
     const commercants = Object.values(commercantsMap);
     
-    console.log(`‚úÖ ${commercants.length} commer√ßants avec paiements en attente`);
+    console.log(`? ${commercants.length} commerÁants avec paiements en attente`);
     
     res.json({
       success: true,
@@ -330,7 +330,7 @@ exports.getCommercantsPaiements = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('‚ùå Erreur getCommercantsPaiements:', error);
+    console.error('? Erreur getCommercantsPaiements:', error);
     res.status(500).json({
       success: false,
       message: 'Erreur serveur',
