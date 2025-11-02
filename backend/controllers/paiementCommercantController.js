@@ -203,24 +203,15 @@ exports.verserAuCommercant = async (req, res) => {
     
     // Créer l'opération financière
     const operation = new OperationFinanciere({
-      typeOperation: 'virement',
-      type: 'virement',
+      typeOperation: 'paiement_livraison',
       montant: montantReel,
-      portefeuilleSource: portefeuilleAgent._id,
-      portefeuilleDestination: portefeuilleCommercant._id,
-      expediteur: {
-        id: agenceId,
-        type: 'Agence',
-        nom: req.user.agenceNom || req.user.agence?.nom || 'Agence'
-      },
-      destinataire: {
-        id: commercantId,
-        type: 'User',
-        nom: portefeuilleCommercant.nomProprietaire
-      },
+      compteDebit: portefeuilleAgent._id,
+      compteCredit: portefeuilleCommercant._id,
       description: `Paiement ${colis.length} colis livrés (${colis.map(c => c.tracking).join(', ')})`,
       statut: 'validee',
-      referenceTransaction: `PAIEMENT-COM-${Date.now()}`
+      methodePaiement: 'virement',
+      effectuePar: req.user._id,
+      notes: `Paiement manuel par agent ${req.user.nom || req.user.email}`
     });
     
     await operation.save();
