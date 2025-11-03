@@ -17,7 +17,7 @@ const getFraisEnAttente = async (req, res) => {
     // Trouver tous les colis livrés par cet agent dont les frais ne sont pas encore payés
     const colis = await Colis.find({
       agentLivraisonId: agentId,
-      statut: 'livre',
+      statut: 'livree',
       fraisLivraisonVerseAdmin: { $ne: true } // Pas encore versé
     })
     .populate('commercantId', 'nom prenom')
