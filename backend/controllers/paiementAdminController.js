@@ -8,7 +8,7 @@ const Portefeuille = require('../models/Portefeuille');
 
 // GET /api/paiement-admin/frais-en-attente
 // Obtenir la liste des colis livrés dont les frais ne sont pas encore versés à l'admin
-exports.getFraisEnAttente = async (req, res) => {
+const getFraisEnAttente = async (req, res) => {
   try {
     const agentId = req.user.id;
     
@@ -69,7 +69,7 @@ exports.getFraisEnAttente = async (req, res) => {
 
 // POST /api/paiement-admin/verser
 // Créer une opération financière pour le versement des frais à l'admin
-exports.verserFraisAdmin = async (req, res) => {
+const verserFraisAdmin = async (req, res) => {
   try {
     const agentId = req.user.id;
     const { montantFrais, nombreColis } = req.body;
