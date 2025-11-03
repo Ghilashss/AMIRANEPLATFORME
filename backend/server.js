@@ -10,8 +10,12 @@ const errorHandler = require('./middleware/error');
 // Charger les variables d'environnement
 dotenv.config();
 
-// Connexion à la base de données
-connectDB();
+// Connexion à la base de données (skip si MONGODB_URI non défini)
+if (process.env.MONGODB_URI && process.env.MONGODB_URI.trim() !== '') {
+  connectDB();
+} else {
+  console.warn('⚠️ MONGODB_URI non défini - connexion à la base de données ignorée (déploiement sans DB)');
+}
 
 // Initialiser Express
 const app = express();
