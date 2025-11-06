@@ -62,6 +62,16 @@ const userSchema = new mongoose.Schema({
   lastLogin: {
     type: Date
   },
+  apiKey: {
+    type: String,
+    unique: true,
+    sparse: true,
+    select: false
+  },
+  apiKeyCreatedAt: {
+    type: Date,
+    select: false
+  },
   resetPasswordToken: String,
   resetPasswordExpire: Date
 }, {

@@ -307,3 +307,87 @@ exports.getCurrentUser = async (req, res, next) => {
   }
 };
 
+// @desc    Générer une API Key pour le commerçant
+// @route   POST /api/auth/generate-api-key
+// @access  Private (commercant uniquement)
+exports.generateApiKey = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Utilisateur non trouvé'
+      });
+    }
+
+    // Vérifier que c'est un commerçant
+    if (user.role !== 'commercant') {
+      return res.status(403).json({
+        success: false,
+        message: 'Seuls les commerçants peuvent générer une API Key'
+      });
+    }
+
+    // Générer une API Key unique (32 caractères aléatoires)
+    const crypto = require('crypto');
+    const apiKey = 'amr_' + crypto.randomBytes(32).toString('hex');
+
+    user.apiKey = apiKey;
+    user.apiKeyCreatedAt = Date.now();
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'API Key générée avec succès',
+      data: {
+        apiKey: apiKey,
+        createdAt: user.apiKeyCreatedAt
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Obtenir l'API Key du commerçant connecté
+// @route   GET /api/auth/my-api-key
+// @access  Private (commercant uniquement)
+exports.getMyApiKey = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id).select('+apiKey +apiKeyCreatedAt');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Utilisateur non trouvé'
+      });
+    }
+
+    // Vérifier que c'est un commerçant
+    if (user.role !== 'commercant') {
+      return res.status(403).json({
+        success: false,
+        message: 'Seuls les commerçants ont accès à l\'API Key'
+      });
+    }
+
+    if (!user.apiKey) {
+      return res.status(404).json({
+        success: false,
+        message: 'Aucune API Key générée. Veuillez en créer une.'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        apiKey: user.apiKey,
+        createdAt: user.apiKeyCreatedAt
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

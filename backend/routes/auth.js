@@ -6,7 +6,9 @@ const {
   getMe,
   updateProfile,
   updatePassword,
-  getUsers
+  getUsers,
+  generateApiKey,
+  getMyApiKey
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
@@ -16,5 +18,7 @@ router.get('/me', protect, getMe);
 router.get('/users', protect, getUsers);
 router.put('/updateprofile', protect, updateProfile);
 router.put('/updatepassword', protect, updatePassword);
+router.post('/generate-api-key', protect, generateApiKey);
+router.get('/my-api-key', protect, getMyApiKey);
 
 module.exports = router;

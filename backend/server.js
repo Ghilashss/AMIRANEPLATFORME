@@ -33,7 +33,7 @@ app.use(cors({
   origin: true,  // Accepte tous les domaines (équivalent à '*' mais avec credentials)
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'] // Ajout X-API-Key
 }));
 
 // Logging en développement
@@ -65,6 +65,7 @@ app.use('/api/retours', require('./routes/retours'));
 app.use('/api/finance', require('./routes/gestionFinance')); // Nouveau système de gestion financière
 app.use('/api/paiement-commercant', require('./routes/paiementCommercant')); // Paiements commerçants
 app.use('/api/paiement-admin', require('./routes/paiementAdmin')); // Paiements frais admin
+app.use('/api/externe', require('./routes/api-externe')); // API externe pour e-commerce
 
 // Route de base
 app.get('/', (req, res) => {
